@@ -186,38 +186,16 @@ public class Main {
         });
 
         // Xử lý sự kiện nút "Tìm kiếm"
+        // Xử lý sự kiện nút "Tìm kiếm"
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                performSearch(searchField.getText().trim());
+                SearchDialog searchDialog = new SearchDialog(frame, documentList, table, bookInfoArea);
+                searchDialog.search(searchField.getText().trim()); // Gọi phương thức search công khai
             }
         });
     }
 
-    // Hàm thực hiện tìm kiếm sách
-    private void performSearch(String searchTerm) {
-        if (searchTerm.isEmpty()) {
-            JOptionPane.showMessageDialog(frame, "Vui lòng nhập từ khóa tìm kiếm"); // Thông báo khi ô tìm kiếm trống
-            return;
-        }
-
-        boolean found = false; // Biến kiểm tra xem có tìm thấy sách hay không
-        for (int i = 0; i < documentList.size(); i++) {
-            Document doc = documentList.get(i);
-            if (doc.getTitle().toLowerCase().contains(searchTerm.toLowerCase())) {
-                table.setRowSelectionInterval(i, i); // Highlight dòng chứa sách
-                table.scrollRectToVisible(table.getCellRect(i, 0, true)); // Cuộn đến dòng chứa sách
-                updateBookInfo(doc); // Cập nhật thông tin sách vào ô "Thông tin"
-                found = true;
-                break; // Tìm thấy sách và dừng tìm kiếm
-            }
-        }
-
-        if (!found) {
-            JOptionPane.showMessageDialog(frame, "Không tìm thấy sách"); // Thông báo khi không tìm thấy sách
-            bookInfoArea.setText(""); // Xóa nội dung trong ô "Thông tin"
-        }
-    }
 
     // Thêm tài liệu mẫu vào danh sách
     private void addSampleDocuments() {
