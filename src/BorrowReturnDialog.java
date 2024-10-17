@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 public class BorrowReturnDialog extends JDialog {
@@ -11,6 +9,7 @@ public class BorrowReturnDialog extends JDialog {
     private User selectedUser;  // Người dùng được chọn
     private JList<String> userListDisplay;
     private DefaultListModel<String> userModel;
+    private JTextArea userInfoArea;  // Khu vực hiển thị thông tin người dùng
 
     public BorrowReturnDialog(JFrame parent, ArrayList<Document> documentList, Document selectedDocument, ArrayList<User> userList) {
         super(parent, "Mượn/Trả tài liệu", true);
@@ -22,9 +21,13 @@ public class BorrowReturnDialog extends JDialog {
         setSize(500, 400);
         setLocationRelativeTo(parent);
 
-        JLabel infoLabel = new JLabel("Chọn thành viên và thực hiện mượn hoặc trả tài liệu:");
+        JLabel infoLabel = new JLabel("Chọn thành viên thực hiện mượn/trả tài liệu:");
         infoLabel.setHorizontalAlignment(SwingConstants.CENTER);
         add(infoLabel, BorderLayout.NORTH);
+
+        // Panel chứa hai khu vực: danh sách thành viên và thông tin chi tiết
+        JPanel mainPanel = new JPanel(new GridLayout(1, 2, 10, 10)); // Chia thành 2 phần
+        add(mainPanel, BorderLayout.CENTER);
 
         // Hiển thị danh sách thành viên
         userModel = new DefaultListModel<>();
@@ -33,12 +36,36 @@ public class BorrowReturnDialog extends JDialog {
             userModel.addElement(user.getName() + " (ID: " + user.getUserId() + ")");
         }
         userListDisplay.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane scrollPane = new JScrollPane(userListDisplay);
-        add(scrollPane, BorderLayout.CENTER);
+        JScrollPane userScrollPane = new JScrollPane(userListDisplay);
+        mainPanel.add(userScrollPane);
 
-        // Panel cho các nút
+        // Thêm tiêu đề cho ô bên trái
+        JPanel userListPanel = new JPanel(new BorderLayout());
+        JLabel userListLabel = new JLabel("Danh sách thành viên:");
+        userListLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        userListLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        userListPanel.add(userListLabel, BorderLayout.NORTH);
+        userListPanel.add(userScrollPane, BorderLayout.CENTER);
+        mainPanel.add(userListPanel);
+
+        // Khu vực hiển thị thông tin người dùng và danh sách sách đã mượn
+        JPanel userInfoPanel = new JPanel(new BorderLayout());
+        JLabel userInfoLabel = new JLabel("Thông tin:");
+        userInfoLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        userInfoLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        userInfoPanel.add(userInfoLabel, BorderLayout.NORTH);
+
+        userInfoArea = new JTextArea();
+        userInfoArea.setEditable(false);
+        userInfoArea.setBackground(new Color(240, 255, 255));
+        JScrollPane infoScrollPane = new JScrollPane(userInfoArea);
+        userInfoPanel.add(infoScrollPane, BorderLayout.CENTER);
+        mainPanel.add(userInfoPanel);
+
+        // Panel cho các nút chức năng
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(1, 3));
+        buttonPanel.setLayout(new GridLayout(1, 4, 10, 10)); // Thêm các nút bên dưới
+        add(buttonPanel, BorderLayout.SOUTH);
 
         // Nút Thêm thành viên
         JButton addUserButton = new JButton("Thêm thành viên");
@@ -77,7 +104,8 @@ public class BorrowReturnDialog extends JDialog {
                 if (selectedDocument.getQuantity() > 0) {
                     selectedUser.borrowBook(selectedDocument);
                     JOptionPane.showMessageDialog(this, "Mượn tài liệu thành công!");
-                    dispose();
+                    // Cập nhật lại thông tin hiển thị của người dùng sau khi mượn sách
+                    displayUserInfo(selectedUser);
                 } else {
                     JOptionPane.showMessageDialog(this, "Tài liệu đã hết!");
                 }
@@ -102,6 +130,28 @@ public class BorrowReturnDialog extends JDialog {
         });
         buttonPanel.add(returnButton);
 
-        add(buttonPanel, BorderLayout.SOUTH);
+        // Hiển thị thông tin người dùng khi click vào danh sách
+        userListDisplay.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedUserIndex = userListDisplay.getSelectedIndex();
+                if (selectedUserIndex != -1) {
+                    selectedUser = userList.get(selectedUserIndex);
+                    displayUserInfo(selectedUser);
+                }
+            }
+        });
+    }
+
+    // Phương thức để hiển thị thông tin người dùng và sách đã mượn
+    private void displayUserInfo(User user) {
+        StringBuilder info = new StringBuilder();
+        info.append("ID: ").append(user.getUserId()).append("\n");
+        info.append("Tên: ").append(user.getName()).append("\n");
+        info.append("Email: ").append(user.getEmail()).append("\n");
+        info.append("Sách đã mượn:\n");
+        for (Document doc : user.getBorrowedBooks()) {
+            info.append("- ").append(doc.getTitle()).append("\n");
+        }
+        userInfoArea.setText(info.toString());
     }
 }

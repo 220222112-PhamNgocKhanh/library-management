@@ -186,7 +186,6 @@ public class Main {
         });
 
         // Xử lý sự kiện nút "Tìm kiếm"
-        // Xử lý sự kiện nút "Tìm kiếm"
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
