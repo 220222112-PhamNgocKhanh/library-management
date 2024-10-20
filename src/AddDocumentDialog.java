@@ -11,12 +11,12 @@ public class AddDocumentDialog extends JDialog {
     private JComboBox<String> statusComboBox;
     private JTextField quantityField;
     private ArrayList<Document> documentList;
-    private Main mainInstance; // Đối tượng Main để gọi hàm updateTable()
+    private LibrarianMain librarianMain;
 
-    public AddDocumentDialog(JFrame parent, ArrayList<Document> documentList, Main mainInstance) {
+    public AddDocumentDialog(JFrame parent, ArrayList<Document> documentList, LibrarianMain librarianMain) {
         super(parent, "Thêm tài liệu mới", true);
         this.documentList = documentList;
-        this.mainInstance = mainInstance;
+        this.librarianMain = librarianMain;
 
         setLayout(new GridLayout(6, 2));
 
@@ -76,7 +76,7 @@ public class AddDocumentDialog extends JDialog {
             documentList.add(newDocument);
 
             // Cập nhật bảng để hiển thị tài liệu mới
-            mainInstance.updateTable();
+            librarianMain.updateTable();
 
             // Đóng dialog sau khi thêm tài liệu thành công
             dispose();

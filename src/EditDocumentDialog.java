@@ -10,15 +10,15 @@ public class EditDocumentDialog extends JDialog {
     private JTextField categoryField;
     private JComboBox<String> statusComboBox;
     private JTextField quantityField;
-    private int selectedRow; // Vị trí của tài liệu được chọn trong danh sách
+    private int selectedRow;
     private ArrayList<Document> documentList;
-    private Main mainInstance; // Đối tượng Main để gọi hàm updateTable()
+    private LibrarianMain librarianMain;
 
-    public EditDocumentDialog(JFrame parent, ArrayList<Document> documentList, int selectedRow, Main mainInstance) {
+    public EditDocumentDialog(JFrame parent, ArrayList<Document> documentList, int selectedRow, LibrarianMain librarianMain) {
         super(parent, "Sửa tài liệu", true);
         this.documentList = documentList;
         this.selectedRow = selectedRow;
-        this.mainInstance = mainInstance;
+        this.librarianMain = librarianMain;
 
         setLayout(new GridLayout(6, 2));
 
@@ -84,7 +84,7 @@ public class EditDocumentDialog extends JDialog {
             document.setQuantity(quantity);
 
             // Cập nhật bảng để hiển thị thông tin đã chỉnh sửa
-            mainInstance.updateTable();
+            librarianMain.updateTable();
 
             // Đóng dialog sau khi lưu
             dispose();
