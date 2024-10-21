@@ -15,6 +15,7 @@ public class LibrarianMain extends JFrame{
     private JTextField searchField;
     private ArrayList<Document> documentList; // Danh sách các tài liệu
     private ArrayList<User> userList; // Danh sách người dùng
+    private ArrayList<String> requestList = new ArrayList<>(); // Danh sách yêu cầu
 
     public LibrarianMain() {
         documentList = new ArrayList<>();
@@ -41,6 +42,20 @@ public class LibrarianMain extends JFrame{
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
         frame.getContentPane().add(searchPanel, BorderLayout.NORTH);
+
+        // Thêm nút "Yêu cầu" ở bên phải
+        JButton requestButton = new JButton("Yêu cầu");
+        requestButton.setBackground(new Color(144, 238, 144)); // Màu xanh cho nút "Yêu cầu"
+        searchPanel.add(requestButton, BorderLayout.EAST);
+        frame.getContentPane().add(searchPanel, BorderLayout.NORTH);
+
+        // Xử lý sự kiện cho nút "Yêu cầu"
+        requestButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showRequestList(); // Hiển thị danh sách yêu cầu
+            }
+        });
 
         // Các nút chức năng
         JPanel buttonPanel = new JPanel();
@@ -199,5 +214,27 @@ public class LibrarianMain extends JFrame{
         for (Document doc : documentList) {
             model.addRow(new Object[]{doc.getTitle(), doc.getStatus(), doc.getQuantity()});
         }
+    }
+
+    // Hiển thị danh sách các yêu cầu
+    private void showRequestList() {
+        // Tạo hộp thoại hiển thị danh sách yêu cầu
+        JDialog requestDialog = new JDialog(frame, "Danh sách Yêu cầu", true);
+        requestDialog.setSize(400, 300);
+        requestDialog.setLocationRelativeTo(frame);
+        JTextArea requestArea = new JTextArea();
+        requestArea.setEditable(false);
+        ArrayList<String> requests = LibraryManager.getRequestList();
+        if (requests.isEmpty()) {
+            requestArea.setText("Không có yêu cầu nào.");
+        } else {
+            StringBuilder requestText = new StringBuilder("Danh sách các yêu cầu:\n");
+            for (String request : requests) {
+                requestText.append("- ").append(request).append("\n");
+            }
+            requestArea.setText(requestText.toString());
+        }
+        requestDialog.add(new JScrollPane(requestArea), BorderLayout.CENTER);
+        requestDialog.setVisible(true);
     }
 }

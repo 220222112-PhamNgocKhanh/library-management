@@ -53,8 +53,9 @@ public class LockScreen extends JFrame {
         userButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Hiển thị thông báo cho người dùng
-                JOptionPane.showMessageDialog(LockScreen.this, "Chức năng này chưa được triển khai");
+                // Hiển thị hộp thoại đăng nhập/đăng ký
+                UserLoginRegisterDialog dialog = new UserLoginRegisterDialog(LockScreen.this);
+                dialog.setVisible(true);
             }
         });
     }

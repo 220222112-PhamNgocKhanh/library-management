@@ -140,6 +140,15 @@ public class BorrowReturnDialog extends JDialog {
                 }
             }
         });
+
+        refreshUserList(); // Cập nhật danh sách người dùng khi mở BorrowReturnDialog
+    }
+
+    public void refreshUserList() {
+        userModel.clear();
+        for (User user : userList) {
+            userModel.addElement(user.getName() + " (ID: " + user.getUserId() + ")");
+        }
     }
 
     // Phương thức để hiển thị thông tin người dùng và sách đã mượn
