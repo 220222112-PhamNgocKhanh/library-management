@@ -2,11 +2,11 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+
 
 public class Main {
     private JFrame frame;
@@ -17,11 +17,13 @@ public class Main {
     private ArrayList<Document> documentList; // Danh sách các tài liệu
     private ArrayList<User> userList; // Danh sách người dùng
 
+
     public Main() {
         documentList = new ArrayList<>();
         userList = new ArrayList<>();
         initialize();
     }
+
 
     public static void main(String[] args) {
         EventQueue.invokeLater(() -> {
@@ -34,6 +36,7 @@ public class Main {
         });
     }
 
+
     // Hàm cập nhật thông tin sách vào ô "Thông tin"
     public void updateBookInfo(Document document) {
         String info = String.format("Tên sách: %s\nTác giả: %s\nThể loại: %s\nTrạng thái: %s\nSố lượng: %d",
@@ -41,12 +44,14 @@ public class Main {
         bookInfoArea.setText(info);  // Cập nhật thông tin sách
     }
 
+
     private void initialize() {
         // Tạo cửa sổ chính
         frame = new JFrame("Thư viện");
         frame.setSize(800, 600); // Đặt kích thước khung chính
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new BorderLayout());
+
 
         // Tiêu đề ở phía trên với thanh tìm kiếm
         JPanel searchPanel = new JPanel();
@@ -57,35 +62,42 @@ public class Main {
         searchPanel.add(searchButton);
         frame.getContentPane().add(searchPanel, BorderLayout.NORTH);
 
+
         // Các nút chức năng
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridLayout(1, 4, 10, 10)); // 4 nút
         frame.getContentPane().add(buttonPanel, BorderLayout.CENTER);
+
 
         JButton btnAdd = new JButton("Thêm tài liệu");
         btnAdd.setBackground(new Color(173, 216, 230));
         btnAdd.setFont(new Font("Arial", Font.BOLD, 18));
         buttonPanel.add(btnAdd);
 
+
         JButton btnEdit = new JButton("Sửa tài liệu");
         btnEdit.setBackground(new Color(135, 206, 250));
         btnEdit.setFont(new Font("Arial", Font.BOLD, 18));
         buttonPanel.add(btnEdit);
+
 
         JButton btnDelete = new JButton("Xóa tài liệu");
         btnDelete.setBackground(new Color(255, 99, 71));
         btnDelete.setFont(new Font("Arial", Font.BOLD, 18));
         buttonPanel.add(btnDelete);
 
+
         JButton btnBorrowReturn = new JButton("Mượn/Trả tài liệu");
         btnBorrowReturn.setBackground(new Color(255, 165, 0));
         btnBorrowReturn.setFont(new Font("Arial", Font.BOLD, 18));
         buttonPanel.add(btnBorrowReturn);
 
+
         // Panel chính chứa bảng danh sách và khu vực thông tin
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new GridLayout(1, 2, 10, 10)); // Chia thành 2 phần
         frame.getContentPane().add(contentPanel, BorderLayout.SOUTH); // Di chuyển xuống dưới cùng
+
 
         // Tạo bảng hiển thị danh sách tài liệu
         String[] columnNames = {"Tên tài liệu", "Trạng thái", "Số lượng"};
@@ -96,14 +108,17 @@ public class Main {
         scrollPane.setPreferredSize(new Dimension(300, 300)); // Kích thước thu hẹp
         contentPanel.add(scrollPane);
 
+
         // Thêm một số tài liệu mẫu
         addSampleDocuments(); // Phương thức để thêm tài liệu mẫu
+
 
         // Khu vực thông tin chi tiết tài liệu
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BorderLayout());
         infoPanel.setPreferredSize(new Dimension(300, 300)); // Kích thước thu hẹp
         contentPanel.add(infoPanel);
+
 
         JLabel lblInfo = new JLabel("Thông tin:");
         lblInfo.setFont(new Font("Arial", Font.BOLD, 16));
@@ -112,10 +127,12 @@ public class Main {
         lblInfo.setOpaque(true);
         infoPanel.add(lblInfo, BorderLayout.NORTH);
 
+
         bookInfoArea = new JTextArea();
         bookInfoArea.setEditable(false);
         bookInfoArea.setBackground(new Color(240, 255, 255));
         infoPanel.add(new JScrollPane(bookInfoArea), BorderLayout.CENTER);
+
 
         // Khi chọn một dòng trong bảng, hiển thị thông tin tài liệu
         table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -131,6 +148,7 @@ public class Main {
             }
         });
 
+
         // Xử lý sự kiện nút "Thêm tài liệu"
         btnAdd.addActionListener(new ActionListener() {
             @Override
@@ -139,6 +157,7 @@ public class Main {
                 dialog.setVisible(true);
             }
         });
+
 
         // Xử lý sự kiện nút "Sửa tài liệu"
         btnEdit.addActionListener(new ActionListener() {
@@ -154,6 +173,7 @@ public class Main {
             }
         });
 
+
         // Xử lý sự kiện nút "Xóa tài liệu"
         btnDelete.addActionListener(new ActionListener() {
             @Override
@@ -168,6 +188,7 @@ public class Main {
                 }
             }
         });
+
 
         // Xử lý sự kiện nút "Mượn/Trả tài liệu"
         btnBorrowReturn.addActionListener(new ActionListener() {
@@ -185,6 +206,7 @@ public class Main {
             }
         });
 
+
         // Xử lý sự kiện nút "Tìm kiếm"
         searchButton.addActionListener(new ActionListener() {
             @Override
@@ -196,6 +218,8 @@ public class Main {
     }
 
 
+
+
     // Thêm tài liệu mẫu vào danh sách
     private void addSampleDocuments() {
         documentList.add(new Document("Sách 1", "Tác giả A", "Thể loại 1", "Còn", 19));
@@ -204,10 +228,12 @@ public class Main {
         updateTable(); // Cập nhật bảng sau khi thêm tài liệu
     }
 
+
     // Hiển thị thông tin tài liệu
     private void showBookInfo(Document document) {
         bookInfoArea.setText(document.toString()); // Hiển thị chi tiết tài liệu
     }
+
 
     // Cập nhật bảng hiển thị danh sách tài liệu từ danh sách documentList
     public void updateTable() {
@@ -217,3 +243,4 @@ public class Main {
         }
     }
 }
+
