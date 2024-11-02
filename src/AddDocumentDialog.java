@@ -1,112 +1,87 @@
-package org.example.app;
-
-import javafx.geometry.Insets;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-public class AddDocumentDialog extends Stage {
-    private TextField titleField;
-    private TextField authorField;
-    private TextField categoryField;
-    private ComboBox<String> statusComboBox;
-    private TextField quantityField;
+public class AddDocumentDialog extends JDialog {
+    private JTextField titleField;
+    private JTextField authorField;
+    private JTextField categoryField;
+    private JComboBox<String> statusComboBox;
+    private JTextField quantityField;
     private ArrayList<Document> documentList;
-    private Main mainInstance; // Đối tượng Main để gọi hàm updateTable()
+    private LibrarianMain librarianMain;
 
-    public AddDocumentDialog(Stage parent, ArrayList<Document> documentList, Main mainInstance) {
+    public AddDocumentDialog(JFrame parent, ArrayList<Document> documentList, LibrarianMain librarianMain) {
+        super(parent, "Thêm tài liệu mới", true);
         this.documentList = documentList;
-        this.mainInstance = mainInstance;
+        this.librarianMain = librarianMain;
 
-        initModality(Modality.APPLICATION_MODAL); // Tạo cửa sổ dạng modal
-        initOwner(parent);
-        setTitle("Thêm tài liệu mới");
+        setLayout(new GridLayout(6, 2));
 
-        // Tạo layout dạng lưới
-        GridPane grid = new GridPane();
-        grid.setPadding(new Insets(10));
-        grid.setHgap(10);
-        grid.setVgap(10);
+        // Nhập thông tin tài liệu
+        add(new JLabel("Tên tài liệu:"));
+        titleField = new JTextField();
+        add(titleField);
 
-        // Trường nhập tên tài liệu
-        grid.add(new Label("Tên tài liệu:"), 0, 0);
-        titleField = new TextField();
-        grid.add(titleField, 1, 0);
+        add(new JLabel("Tác giả:"));
+        authorField = new JTextField();
+        add(authorField);
 
-        // Trường nhập tác giả
-        grid.add(new Label("Tác giả:"), 0, 1);
-        authorField = new TextField();
-        grid.add(authorField, 1, 1);
+        add(new JLabel("Thể loại:"));
+        categoryField = new JTextField();
+        add(categoryField);
 
-        // Trường nhập thể loại
-        grid.add(new Label("Thể loại:"), 0, 2);
-        categoryField = new TextField();
-        grid.add(categoryField, 1, 2);
+        add(new JLabel("Trạng thái:"));
+        statusComboBox = new JComboBox<>(new String[]{"Còn", "Hết"});
+        add(statusComboBox);
 
-        // ComboBox chọn trạng thái
-        grid.add(new Label("Trạng thái:"), 0, 3);
-        statusComboBox = new ComboBox<>();
-        statusComboBox.getItems().addAll("Còn", "Hết");
-        grid.add(statusComboBox, 1, 3);
-
-        // Trường nhập số lượng
-        grid.add(new Label("Số lượng:"), 0, 4);
-        quantityField = new TextField();
-        grid.add(quantityField, 1, 4);
+        add(new JLabel("Số lượng:"));
+        quantityField = new JTextField();
+        add(quantityField);
 
         // Nút thêm tài liệu
-        Button addButton = new Button("Thêm");
-        addButton.setOnAction(e -> addDocument());
+        JButton addButton = new JButton("Thêm");
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addDocument();
+            }
+        });
+        add(addButton);
 
         // Nút đóng
-        Button cancelButton = new Button("Hủy");
-        cancelButton.setOnAction(e -> close());
+        JButton cancelButton = new JButton("Hủy");
+        cancelButton.addActionListener(e -> dispose());
+        add(cancelButton);
 
-        // Thêm các nút vào GridPane
-        grid.add(addButton, 0, 5);
-        grid.add(cancelButton, 1, 5);
-
-        // Tạo và hiển thị Scene
-        Scene scene = new Scene(grid);
-        setScene(scene);
-        setResizable(false);
-        sizeToScene();
+        pack();
+        setLocationRelativeTo(parent);
     }
 
-    // Phương thức thêm tài liệu mới vào documentList
+    // Phương thức để thêm tài liệu mới vào documentList
     private void addDocument() {
         try {
             String title = titleField.getText().trim();
             String author = authorField.getText().trim();
             String category = categoryField.getText().trim();
-            String status = statusComboBox.getValue();
+            String status = (String) statusComboBox.getSelectedItem();
             int quantity = Integer.parseInt(quantityField.getText().trim());
 
-            // Tạo tài liệu mới và thêm vào danh sách
+            // Tạo đối tượng tài liệu mới
             Document newDocument = new Document(title, author, category, status, quantity);
+
+            // Thêm tài liệu mới vào danh sách
             documentList.add(newDocument);
 
-            // Cập nhật bảng hiển thị
-            mainInstance.updateTable();
+            // Cập nhật bảng để hiển thị tài liệu mới
+            librarianMain.updateTable();
 
-            // Đóng cửa sổ sau khi thêm thành công
-            close();
+            // Đóng dialog sau khi thêm tài liệu thành công
+            dispose();
         } catch (NumberFormatException e) {
-            showAlert("Lỗi", "Vui lòng nhập đúng số lượng!");
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập đúng số lượng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    // Phương thức hiển thị thông báo lỗi
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.initOwner(this);
-        alert.showAndWait();
     }
 }

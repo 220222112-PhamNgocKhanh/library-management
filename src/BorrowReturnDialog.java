@@ -1,173 +1,185 @@
-package org.example.app;
-
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-
+import javax.swing.*;
+import javax.swing.event.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class BorrowReturnDialog extends Stage {
+public class BorrowReturnDialog extends JDialog {
     private ArrayList<Document> documentList; // Danh sách tài liệu
     private Document selectedDocument; // Tài liệu được chọn
     private ArrayList<User> userList; // Danh sách người dùng gốc
     private ArrayList<User> filteredUserList; // Danh sách người dùng sau khi lọc
     private User selectedUser; // Người dùng được chọn
-    private ListView<String> userListDisplay;
-    private ObservableList<String> userModel;
-    private TextArea userInfoArea; // Khu vực hiển thị thông tin người dùng
-    private TextField searchField; // Ô tìm kiếm thành viên
-    private Stage parentStage;
+    private JList<String> userListDisplay;
+    private DefaultListModel<String> userModel;
+    private JTextArea userInfoArea; // Khu vực hiển thị thông tin người dùng
+    private JTextField searchField; // Ô tìm kiếm thành viên
 
-    public BorrowReturnDialog(Stage parent, ArrayList<Document> documentList, Document selectedDocument, ArrayList<User> userList) {
+    public BorrowReturnDialog(JFrame parent, ArrayList<Document> documentList, Document selectedDocument, ArrayList<User> userList) {
+        super(parent, "Mượn/Trả tài liệu", true);
         this.documentList = documentList;
         this.selectedDocument = selectedDocument;
         this.userList = userList;
         this.filteredUserList = new ArrayList<>(userList);
-        this.parentStage = parent;
 
-        initModality(Modality.APPLICATION_MODAL); // Tạo cửa sổ dạng modal
-        initOwner(parent);
-        setTitle("Mượn/Trả tài liệu");
+        setLayout(new BorderLayout());
+        setSize(500, 400);
+        setLocationRelativeTo(parent);
+
+        JLabel infoLabel = new JLabel("Chọn thành viên thực hiện mượn/trả tài liệu:");
+        infoLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        add(infoLabel, BorderLayout.NORTH);
+
+        // Panel chính chứa tìm kiếm, danh sách thành viên và thông tin chi tiết
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        add(mainPanel, BorderLayout.CENTER);
 
         // Panel tìm kiếm
-        Label searchLabel = new Label("Nhập tên thành viên để tìm kiếm:");
-        searchField = new TextField();
-        searchField.setPrefWidth(200);
-        searchField.textProperty().addListener((observable, oldValue, newValue) -> filterUserList(newValue));
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        HBox searchPanel = new HBox(10, searchLabel, searchField);
-        searchPanel.setPadding(new Insets(10));
+        // Dòng chữ gợi ý tìm kiếm
+        JLabel searchLabel = new JLabel("Nhập tên thành viên để tìm kiếm:");
 
-        // Hiển thị danh sách thành viên
-        userModel = FXCollections.observableArrayList();
-        userListDisplay = new ListView<>(userModel);
-        updateUserListDisplay(); // Cập nhật hiển thị danh sách ban đầu
+        // Ô tìm kiếm
+        searchField = new JTextField();
+        searchField.setPreferredSize(new Dimension(150, 25)); // Kích thước của ô tìm kiếm
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                filterUserList(searchField.getText());
+            }
 
-        // Panel bên trái chứa tiêu đề và danh sách
-        VBox userListPanel = new VBox(10, new Label("Danh sách thành viên:"), userListDisplay);
-        userListPanel.setPadding(new Insets(10));
-        userListPanel.setPrefWidth(300); // Đặt chiều rộng cho bảng danh sách thành viên
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                filterUserList(searchField.getText());
+            }
 
-        // Khu vực hiển thị thông tin người dùng
-        userInfoArea = new TextArea();
-        userInfoArea.setEditable(false);
-        userInfoArea.setPrefHeight(250);
-
-        VBox userInfoPanel = new VBox(10, new Label("Thông tin:"), userInfoArea);
-        userInfoPanel.setPadding(new Insets(10));
-        userInfoPanel.setPrefWidth(300); // Đặt chiều rộng cho bảng thông tin người dùng
-
-        // Panel chính để chứa hai bảng
-        HBox contentPanel = new HBox(20, userListPanel, userInfoPanel);
-        HBox.setHgrow(userListPanel, Priority.ALWAYS); // Cho phép giãn đều
-        HBox.setHgrow(userInfoPanel, Priority.ALWAYS); // Cho phép giãn đều
-        contentPanel.setPrefWidth(600); // Đặt chiều rộng tổng cộng của HBox
-
-        // Panel cho các nút chức năng
-        Button addUserButton = new Button("Thêm thành viên");
-        addUserButton.setOnAction(e -> addUser());
-
-        Button removeUserButton = new Button("Xóa thành viên");
-        removeUserButton.setOnAction(e -> removeUser());
-
-        Button borrowButton = new Button("Mượn tài liệu");
-        borrowButton.setOnAction(e -> borrowDocument());
-
-        Button returnButton = new Button("Trả tài liệu");
-        returnButton.setOnAction(e -> returnDocument());
-
-        HBox buttonPanel = new HBox(10, addUserButton, removeUserButton, borrowButton, returnButton);
-        buttonPanel.setPadding(new Insets(10));
-        buttonPanel.setSpacing(15);
-
-        // Xử lý hiển thị thông tin người dùng khi click vào danh sách
-        userListDisplay.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            int selectedIndex = userListDisplay.getSelectionModel().getSelectedIndex();
-            if (selectedIndex != -1) {
-                selectedUser = filteredUserList.get(selectedIndex);
-                displayUserInfo(selectedUser);
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                filterUserList(searchField.getText());
             }
         });
 
-        // Thiết lập cảnh và hiển thị
-        VBox root = new VBox(10, searchPanel, contentPanel, buttonPanel);
-        Scene scene = new Scene(root, 500, 400);
-        setScene(scene);
-    }
+        // Thêm các thành phần vào panel tìm kiếm
+        searchPanel.add(searchLabel);
+        searchPanel.add(searchField);
 
-    // Phương thức thêm thành viên mới
-    private void addUser() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setHeaderText("Nhập tên thành viên:");
-        dialog.initOwner(this);
+        mainPanel.add(searchPanel, BorderLayout.NORTH);
 
-        String userName = dialog.showAndWait().orElse(null);
-        if (userName != null && !userName.isEmpty()) {
-            TextInputDialog idDialog = new TextInputDialog();
-            idDialog.setHeaderText("Nhập mã thành viên:");
-            idDialog.initOwner(this);
+        // Panel chứa danh sách thành viên và thông tin chi tiết
+        JPanel contentPanel = new JPanel(new GridLayout(1, 2, 10, 10)); // Chia thành 2 phần
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
 
-            String userId = idDialog.showAndWait().orElse(null);
-            if (userId != null && !userId.isEmpty()) {
+        // Hiển thị danh sách thành viên
+        userModel = new DefaultListModel<>();
+        userListDisplay = new JList<>(userModel);
+        updateUserListDisplay(); // Cập nhật hiển thị danh sách ban đầu
+        userListDisplay.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane userScrollPane = new JScrollPane(userListDisplay);
+
+        // Panel bên trái chứa tiêu đề và danh sách
+        JPanel userListPanel = new JPanel(new BorderLayout());
+        JLabel userListLabel = new JLabel("Danh sách thành viên:");
+        userListLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        userListLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        userListPanel.add(userListLabel, BorderLayout.NORTH);
+        userListPanel.add(userScrollPane, BorderLayout.CENTER);
+        contentPanel.add(userListPanel);
+
+        // Khu vực hiển thị thông tin người dùng
+        JPanel userInfoPanel = new JPanel(new BorderLayout());
+        JLabel userInfoLabel = new JLabel("Thông tin:");
+        userInfoLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        userInfoLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        userInfoPanel.add(userInfoLabel, BorderLayout.NORTH);
+
+        userInfoArea = new JTextArea();
+        userInfoArea.setEditable(false);
+        userInfoArea.setBackground(new Color(240, 255, 255));
+        JScrollPane infoScrollPane = new JScrollPane(userInfoArea);
+        userInfoPanel.add(infoScrollPane, BorderLayout.CENTER);
+        contentPanel.add(userInfoPanel);
+
+        // Panel cho các nút chức năng
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(1, 4, 10, 10)); // Thêm các nút bên dưới
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        // Nút Thêm thành viên
+        JButton addUserButton = new JButton("Thêm thành viên");
+        addUserButton.addActionListener(e -> {
+            String userName = JOptionPane.showInputDialog(this, "Nhập tên thành viên:");
+            String userId = JOptionPane.showInputDialog(this, "Nhập mã thành viên:");
+            if (userName != null && userId != null && !userName.isEmpty() && !userId.isEmpty()) {
                 User newUser = new User(userId, userName, "example@example.com");
                 userList.add(newUser);
                 filterUserList(searchField.getText());
             } else {
-                showAlert("Thông báo", "Vui lòng nhập mã thành viên!");
+                JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin!");
             }
-        } else {
-            showAlert("Thông báo", "Vui lòng nhập tên thành viên!");
-        }
-    }
+        });
+        buttonPanel.add(addUserButton);
 
-    // Phương thức xóa thành viên
-    private void removeUser() {
-        int selectedIndex = userListDisplay.getSelectionModel().getSelectedIndex();
-        if (selectedIndex != -1) {
-            userList.remove(filteredUserList.get(selectedIndex));
-            filterUserList(searchField.getText());
-        } else {
-            showAlert("Thông báo", "Vui lòng chọn thành viên để xóa!");
-        }
-    }
-
-    // Phương thức mượn tài liệu
-    private void borrowDocument() {
-        int selectedUserIndex = userListDisplay.getSelectionModel().getSelectedIndex();
-        if (selectedUserIndex != -1) {
-            selectedUser = filteredUserList.get(selectedUserIndex);
-            if (selectedDocument.getQuantity() > 0) {
-                selectedUser.borrowBook(selectedDocument);
-                showAlert("Thông báo", "Mượn tài liệu thành công!");
-                displayUserInfo(selectedUser);
+        // Nút Xóa thành viên
+        JButton removeUserButton = new JButton("Xóa thành viên");
+        removeUserButton.addActionListener(e -> {
+            int selectedIndex = userListDisplay.getSelectedIndex();
+            if (selectedIndex != -1) {
+                userList.remove(filteredUserList.get(selectedIndex));
+                filterUserList(searchField.getText());
             } else {
-                showAlert("Thông báo", "Tài liệu đã hết!");
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn thành viên để xóa!");
             }
-        } else {
-            showAlert("Thông báo", "Vui lòng chọn thành viên để mượn!");
-        }
+        });
+        buttonPanel.add(removeUserButton);
+
+        // Nút Mượn tài liệu
+        JButton borrowButton = new JButton("Mượn tài liệu");
+        borrowButton.addActionListener(e -> {
+            int selectedUserIndex = userListDisplay.getSelectedIndex();
+            if (selectedUserIndex != -1) {
+                selectedUser = filteredUserList.get(selectedUserIndex);
+                if (selectedDocument.getQuantity() > 0) {
+                    selectedUser.borrowBook(selectedDocument);
+                    JOptionPane.showMessageDialog(this, "Mượn tài liệu thành công!");
+                    displayUserInfo(selectedUser);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Tài liệu đã hết!");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn thành viên để mượn!");
+            }
+        });
+        buttonPanel.add(borrowButton);
+
+        // Nút Trả tài liệu
+        JButton returnButton = new JButton("Trả tài liệu");
+        returnButton.addActionListener(e -> {
+            int selectedUserIndex = userListDisplay.getSelectedIndex();
+            if (selectedUserIndex != -1) {
+                selectedUser = filteredUserList.get(selectedUserIndex);
+                selectedUser.returnBook(selectedDocument);
+                JOptionPane.showMessageDialog(this, "Trả tài liệu thành công!");
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn thành viên để trả!");
+            }
+        });
+        buttonPanel.add(returnButton);
+
+        // Hiển thị thông tin người dùng khi click vào danh sách
+        userListDisplay.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedUserIndex = userListDisplay.getSelectedIndex();
+                if (selectedUserIndex != -1) {
+                    selectedUser = filteredUserList.get(selectedUserIndex);
+                    displayUserInfo(selectedUser);
+                }
+            }
+        });
     }
 
-    // Phương thức trả tài liệu
-    private void returnDocument() {
-        int selectedUserIndex = userListDisplay.getSelectionModel().getSelectedIndex();
-        if (selectedUserIndex != -1) {
-            selectedUser = filteredUserList.get(selectedUserIndex);
-            selectedUser.returnBook(selectedDocument);
-            showAlert("Thông báo", "Trả tài liệu thành công!");
-            displayUserInfo(selectedUser);
-        } else {
-            showAlert("Thông báo", "Vui lòng chọn thành viên để trả!");
-        }
-    }
-
-    // Phương thức hiển thị thông tin người dùng
+    // Phương thức để hiển thị thông tin người dùng
     private void displayUserInfo(User user) {
         StringBuilder info = new StringBuilder();
         info.append("ID: ").append(user.getUserId()).append("\n");
@@ -192,15 +204,7 @@ public class BorrowReturnDialog extends Stage {
     private void updateUserListDisplay() {
         userModel.clear();
         for (User user : filteredUserList) {
-            userModel.add(user.getName() + " (ID: " + user.getUserId() + ")");
+            userModel.addElement(user.getName() + " (ID: " + user.getUserId() + ")");
         }
-    }
-
-    // Hiển thị cảnh báo
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
-        alert.setHeaderText(title);
-        alert.initOwner(this);
-        alert.showAndWait();
     }
 }
