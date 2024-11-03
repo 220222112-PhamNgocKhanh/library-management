@@ -10,7 +10,13 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 
 public class Main extends Application {
@@ -32,6 +38,9 @@ public class Main extends Application {
         observableDocumentList = FXCollections.observableArrayList(documentList);
 
         primaryStage.setTitle("Thư viện");
+
+        // Gọi phương thức để tải tài liệu từ API khi khởi chạy
+        loadDocumentsFromAPI();
 
         // Tiêu đề ở phía trên với thanh tìm kiếm
         HBox searchPanel = new HBox(10);
@@ -198,8 +207,7 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        // Thêm một số tài liệu mẫu
-        addSampleDocuments(); // Phương thức để thêm tài liệu mẫu
+
     }
 
     // Hiển thị thông tin tài liệu
@@ -207,18 +215,84 @@ public class Main extends Application {
         bookInfoArea.setText(document.toString()); // Hiển thị chi tiết tài liệu
     }
 
-    // Cập nhật bảng hiển thị danh sách tài liệu từ danh sách documentList
-    public void updateTable() {
-        observableDocumentList.setAll(documentList); // Đặt lại danh sách Observable
+    // Phương thức tải dữ liệu tài liệu từ Google Books API
+    private void loadDocumentsFromAPI() {
+        int startIndex = 0;
+        int totalItems = 537; // Tổng số tài liệu cần lấy
+        int maxResults = 40;
+
+        while (startIndex < totalItems) {
+            try {
+                String url = "https://www.googleapis.com/books/v1/volumes?q=isbn%30&startIndex=" + startIndex + "&maxResults=" + maxResults;
+                HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+                connection.setRequestMethod("GET");
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+
+                parseBookDataFromAPI(response.toString());
+
+                startIndex += maxResults; // Tăng startIndex để lấy trang tiếp theo
+            } catch (Exception e) {
+                showAlert("Không thể lấy dữ liệu từ API.");
+                break; // Dừng nếu có lỗi
+            }
+        }
     }
 
-    // Thêm tài liệu mẫu vào danh sách
-    private void addSampleDocuments() {
-        documentList.add(new Document("Sách 1", "Tác giả A", "Thể loại 1", "Còn", 19));
-        documentList.add(new Document("Sách 2", "Tác giả B", "Thể loại 2", "Hết", 20));
-        documentList.add(new Document("Sách 3", "Tác giả C", "Thể loại 1", "Còn", 10));
-        updateTable(); // Cập nhật bảng sau khi thêm tài liệu
+
+    // Phân tích cú pháp JSON và thêm dữ liệu vào documentList
+    private void parseBookDataFromAPI(String jsonResponse) {
+        JSONObject jsonObject = new JSONObject(jsonResponse);
+        JSONArray items = jsonObject.optJSONArray("items");
+
+        if (items != null) {
+            for (int i = 0; i < items.length(); i++) {
+                JSONObject volumeInfo = items.getJSONObject(i).getJSONObject("volumeInfo");
+
+                String title = volumeInfo.optString("title", "N/A");
+                String author = volumeInfo.optJSONArray("authors") != null ?
+                        volumeInfo.optJSONArray("authors").join(", ") : "N/A";
+                String category = volumeInfo.optJSONArray("categories") != null ?
+                        volumeInfo.optJSONArray("categories").getString(0) : "N/A";
+                String publisher = volumeInfo.optString("publisher", "N/A");
+                String publishedDate = volumeInfo.optString("publishedDate", "N/A");
+                String description = volumeInfo.optString("description", "N/A");
+                String isbn13 = "N/A";
+                String isbn10 = "N/A";
+                JSONArray industryIdentifiers = volumeInfo.optJSONArray("industryIdentifiers");
+
+                if (industryIdentifiers != null) {
+                    for (int j = 0; j < industryIdentifiers.length(); j++) {
+                        JSONObject identifier = industryIdentifiers.getJSONObject(j);
+                        if ("ISBN_13".equals(identifier.optString("type"))) {
+                            isbn13 = identifier.optString("identifier");
+                        } else if ("ISBN_10".equals(identifier.optString("type"))) {
+                            isbn10 = identifier.optString("identifier");
+                        }
+                    }
+                }
+
+                // Sử dụng số lượng mặc định và trạng thái từ lớp Document
+                Document document = new Document(title, author, category, "Còn", 100, publisher, publishedDate, description, isbn13, isbn10);
+                documentList.add(document);
+            }
+            updateTable();
+        }
     }
+
+
+    // Cập nhật bảng hiển thị danh sách tài liệu từ documentList
+    public void updateTable() {
+        observableDocumentList.setAll(documentList);
+    }
+
+
 
     // Phương thức tiện ích để hiển thị thông báo
     private void showAlert(String message) {

@@ -5,18 +5,22 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class SearchDialog extends Stage {
-    private ArrayList<Document> documentList; // Danh sách tài liệu
-    private TextField searchField; // Ô tìm kiếm
-    private TextArea bookInfoArea; // Kết quả tìm kiếm
-    private TableView<Document> table; // Bảng để hiển thị kết quả tìm kiếm
-    private Stage parentStage; // Tham chiếu tới frame cha để hiển thị dialog
+    private ArrayList<Document> documentList;
+    private TextField searchField;
+    private TextArea bookInfoArea;
+    private TableView<Document> table;
+    private Stage parentStage;
 
     public SearchDialog(Stage parent, ArrayList<Document> documentList, TableView<Document> table, TextArea bookInfoArea) {
         this.documentList = documentList;
@@ -24,42 +28,33 @@ public class SearchDialog extends Stage {
         this.bookInfoArea = bookInfoArea;
         this.parentStage = parent;
 
-        initModality(Modality.APPLICATION_MODAL); // Tạo cửa sổ dạng modal
+        initModality(Modality.APPLICATION_MODAL);
         initOwner(parent);
-
         setTitle("Tìm kiếm tài liệu");
 
-        // Tạo thanh tìm kiếm
+        BorderPane root = new BorderPane();
         FlowPane searchPanel = new FlowPane(10, 10);
         searchPanel.setPadding(new Insets(10));
+
+        Label searchLabel = new Label("Nhập tên sách hoặc ISBN:");
         searchField = new TextField();
-        searchField.setPromptText("Nhập tên sách...");
         searchField.setPrefWidth(200);
-
         Button searchButton = new Button("Tìm kiếm");
-        searchPanel.getChildren().addAll(new Label("Nhập tên sách:"), searchField, searchButton);
-
-        // Kết quả tìm kiếm
-        TextArea resultArea = new TextArea();
-        resultArea.setEditable(false);
-        resultArea.setPrefSize(400, 200);
-
-        // Bố trí các thành phần vào cửa sổ chính
-        BorderPane root = new BorderPane();
-        root.setTop(searchPanel);
-        root.setCenter(new ScrollPane(resultArea));
-
-        // Xử lý sự kiện tìm kiếm
         searchButton.setOnAction(e -> performSearch(searchField.getText().trim()));
 
-        // Thiết lập cảnh và hiển thị
+        searchPanel.getChildren().addAll(searchLabel, searchField, searchButton);
+        root.setTop(searchPanel);
+
+        bookInfoArea = new TextArea();
+        bookInfoArea.setEditable(false);
+        bookInfoArea.setPrefHeight(200);
+        root.setCenter(new ScrollPane(bookInfoArea));
+
         Scene scene = new Scene(root, 500, 300);
         setScene(scene);
-        setX(parent.getX() + 100);
-        setY(parent.getY() + 100);
     }
 
-    // Hàm tìm kiếm tài liệu theo tên
+    // Phương thức tìm kiếm tài liệu từ API Google Books
     private void performSearch(String searchTerm) {
         if (searchTerm.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING, "Vui lòng nhập từ khóa tìm kiếm");
@@ -71,10 +66,19 @@ public class SearchDialog extends Stage {
         boolean found = false; // Biến kiểm tra xem có tìm thấy tài liệu hay không
         for (int i = 0; i < documentList.size(); i++) {
             Document doc = documentList.get(i);
-            if (doc.getTitle().toLowerCase().contains(searchTerm.toLowerCase())) {
-                table.getSelectionModel().select(i); // Chọn dòng chứa tài liệu
+
+            // Kiểm tra từ khóa trong cả tên sách và ISBN
+            if (doc.getTitle().toLowerCase().contains(searchTerm.toLowerCase()) ||
+                    doc.getIsbn13().equalsIgnoreCase(searchTerm) ||
+                    doc.getIsbn10().equalsIgnoreCase(searchTerm)) {
+
+                // Chọn và highlight dòng chứa tài liệu
+                table.getSelectionModel().clearAndSelect(i); // Chọn dòng chứa tài liệu và bỏ chọn các dòng khác
                 table.scrollTo(i); // Cuộn đến dòng chứa tài liệu
-                bookInfoArea.setText(doc.toString()); // Cập nhật thông tin tài liệu vào ô "Thông tin"
+
+                // Hiển thị thông tin tài liệu trong ô "Thông tin"
+                bookInfoArea.setText(doc.toString());
+
                 found = true;
                 break; // Tìm thấy tài liệu và dừng tìm kiếm
             }
@@ -88,8 +92,18 @@ public class SearchDialog extends Stage {
         }
     }
 
+
     // Hàm công khai để gọi performSearch từ bên ngoài
     public void search(String searchTerm) {
         performSearch(searchTerm);
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.initOwner(this);
+        alert.showAndWait();
     }
 }
