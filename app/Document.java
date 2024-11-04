@@ -32,7 +32,7 @@ public class Document {
         this.description = description;
         this.isbn13 = isbn13;
         this.isbn10 = isbn10;
-        this.quantity = 100; // Đặt số lượng mặc định là 100
+        this.quantity = quantity; // Đặt số lượng mặc định là 100
         this.status = (this.quantity >= 1) ? "Còn" : "Hết"; // Đặt trạng thái
     }
 

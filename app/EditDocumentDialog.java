@@ -16,6 +16,8 @@ public class EditDocumentDialog extends Stage {
     private TextField quantityField;
     private TextField publisherField;
     private TextField publishedDateField;
+    private TextField isbn10Field; // Trường để chỉnh sửa ISBN 10
+    private TextField isbn13Field; // Trường để chỉnh sửa ISBN 13
     private TextArea descriptionArea;
     private int selectedRow;
     private ArrayList<Document> documentList;
@@ -68,18 +70,28 @@ public class EditDocumentDialog extends Stage {
         publishedDateField = new TextField(document.getPublishedDate());
         grid.add(publishedDateField, 1, 6);
 
-        grid.add(new Label("Mô tả:"), 0, 7);
+        // Trường ISBN 10
+        grid.add(new Label("ISBN 10:"), 0, 7);
+        isbn10Field = new TextField(document.getIsbn10());
+        grid.add(isbn10Field, 1, 7);
+
+        // Trường ISBN 13
+        grid.add(new Label("ISBN 13:"), 0, 8);
+        isbn13Field = new TextField(document.getIsbn13());
+        grid.add(isbn13Field, 1, 8);
+
+        grid.add(new Label("Mô tả:"), 0, 9);
         descriptionArea = new TextArea(document.getDescription());
         descriptionArea.setPrefRowCount(3);
-        grid.add(descriptionArea, 1, 7, 2, 1);
+        grid.add(descriptionArea, 1, 9, 2, 1);
 
         Button saveButton = new Button("Lưu");
         saveButton.setOnAction(e -> saveDocument());
-        grid.add(saveButton, 0, 8);
+        grid.add(saveButton, 0, 10);
 
         Button cancelButton = new Button("Hủy");
         cancelButton.setOnAction(e -> close());
-        grid.add(cancelButton, 1, 8);
+        grid.add(cancelButton, 1, 10);
 
         Scene scene = new Scene(grid);
         setScene(scene);
@@ -96,6 +108,8 @@ public class EditDocumentDialog extends Stage {
             int quantity = Integer.parseInt(quantityField.getText().trim());
             String publisher = publisherField.getText().trim();
             String publishedDate = publishedDateField.getText().trim();
+            String isbn10 = isbn10Field.getText().trim();
+            String isbn13 = isbn13Field.getText().trim();
             String description = descriptionArea.getText().trim();
 
             Document document = documentList.get(selectedRow);
@@ -106,6 +120,8 @@ public class EditDocumentDialog extends Stage {
             document.setQuantity(quantity);
             document.setPublisher(publisher);
             document.setPublishedDate(publishedDate);
+            document.setIsbn10(isbn10); // Cập nhật ISBN 10
+            document.setIsbn13(isbn13); // Cập nhật ISBN 13
             document.setDescription(description);
 
             mainInstance.updateTable();

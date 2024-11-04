@@ -85,7 +85,6 @@ public class Main extends Application {
         HBox.setHgrow(btnDelete, Priority.ALWAYS);
         HBox.setHgrow(btnBorrowReturn, Priority.ALWAYS);
 
-
         // Tạo bảng hiển thị danh sách tài liệu
         table = new TableView<>();
         table.setPrefWidth(395); // Đặt chiều rộng cố định cho bảng
@@ -109,7 +108,6 @@ public class Main extends Application {
         // Thêm các cột vào bảng và thiết lập dữ liệu
         table.getColumns().addAll(titleColumn, statusColumn, quantityColumn);
         table.setItems(observableDocumentList);
-
 
         // Khu vực thông tin chi tiết tài liệu
         VBox infoPanel = new VBox();
@@ -206,8 +204,6 @@ public class Main extends Application {
         Scene scene = new Scene(root, 800, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
-
-
     }
 
     // Hiển thị thông tin tài liệu
@@ -244,7 +240,6 @@ public class Main extends Application {
             }
         }
     }
-
 
     // Phân tích cú pháp JSON và thêm dữ liệu vào documentList
     private void parseBookDataFromAPI(String jsonResponse) {
@@ -286,13 +281,10 @@ public class Main extends Application {
         }
     }
 
-
     // Cập nhật bảng hiển thị danh sách tài liệu từ documentList
     public void updateTable() {
         observableDocumentList.setAll(documentList);
     }
-
-
 
     // Phương thức tiện ích để hiển thị thông báo
     private void showAlert(String message) {
