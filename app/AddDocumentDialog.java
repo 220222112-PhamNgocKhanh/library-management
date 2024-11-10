@@ -103,6 +103,7 @@ public class AddDocumentDialog extends Stage {
         grid.add(new Label("Mô tả:"), 0, 10);
         descriptionArea = new TextArea();
         descriptionArea.setPrefRowCount(3);
+        descriptionArea.setWrapText(true); // Bật chế độ ngắt dòng tự động nếu cần
         grid.add(descriptionArea, 1, 10, 2, 1);
 
         // Nút thêm tài liệu
@@ -202,13 +203,15 @@ public class AddDocumentDialog extends Stage {
             String publishedDate = publishedDateField.getText().trim();
             String description = descriptionArea.getText().trim();
 
+            /**
             // Kiểm tra nếu ISBN 10 hoặc ISBN 13 bị để trống
             if (isbn10.isEmpty() || isbn13.isEmpty()) {
                 showAlert("Lỗi", "Vui lòng nhập đầy đủ ISBN 10 và ISBN 13.");
                 return;
             }
+             */
 
-            Document newDocument = new Document(title, author, category, status, quantity, publisher, publishedDate, description, isbn10, isbn13);
+            Document newDocument = new Document(title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10);
             documentList.add(newDocument);
 
             mainInstance.updateTable();

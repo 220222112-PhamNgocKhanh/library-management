@@ -3,6 +3,7 @@ package org.example.app;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -14,6 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -23,8 +25,8 @@ public class Main extends Application {
     private TableView<Document> table;
     private TextArea bookInfoArea;
     private TextField searchField;
-    private ArrayList<Document> documentList; // Danh sách các tài liệu
-    private ArrayList<User> userList; // Danh sách người dùng
+    private ArrayList<Document> documentList;
+    private ArrayList<User> userList;
     private ObservableList<Document> observableDocumentList;
 
     public static void main(String[] args) {
@@ -42,41 +44,97 @@ public class Main extends Application {
         // Gọi phương thức để tải tài liệu từ API khi khởi chạy
         loadDocumentsFromAPI();
 
-        // Tiêu đề ở phía trên với thanh tìm kiếm
-        HBox searchPanel = new HBox(10);
+        // Tạo sidebar với các nút chức năng
+        VBox sidebar = new VBox(20); // Sử dụng VBox để tạo layout dọc, với khoảng cách giữa các phần tử là 20
+        sidebar.setPadding(new Insets(20));
+        sidebar.setPrefWidth(200); // Chiều rộng của sidebar
+        sidebar.setStyle("-fx-background-color: linear-gradient(to bottom, #FF7E5F, #FD3A84);"); // Màu nền dạng gradient
+
+        // Tiêu đề trên cùng của sidebar
+        Label title = new Label("Library\nManagement");
+        title.setStyle("-fx-font-size: 25px; -fx-font-weight: bold; -fx-text-fill: white;"); // Định dạng tiêu đề
+
+        // Tạo các nút chức năng trong sidebar
+        Button btnGioiThieu = new Button("Giới thiệu");
+        Button btnGhiChu = new Button("Ghi chú");
+        Button calendarButton = new Button("Lịch");
+        Button btnThanhVien = new Button("Thành viên");
+
+        // Định dạng cho các nút chức năng trong sidebar
+        for (Button btn : new Button[]{btnGioiThieu, btnGhiChu, calendarButton, btnThanhVien}) {
+            btn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 16px; -fx-alignment: CENTER_LEFT;");
+            btn.setMaxWidth(Double.MAX_VALUE); // Đặt chiều rộng của nút là tối đa, để vừa với chiều rộng của sidebar
+            btn.setOnAction(e -> System.out.println(btn.getText() + " clicked")); // Xử lý sự kiện khi nhấn nút
+        }
+
+        // Thêm tiêu đề và các nút vào sidebar
+        sidebar.getChildren().addAll(title, btnGioiThieu, btnGhiChu, calendarButton, btnThanhVien);
+
+        // Tạo phần nội dung chính - bao gồm thanh tìm kiếm và các nút chức năng
+        HBox searchPanel = new HBox(10); // Sử dụng HBox để tạo thanh tìm kiếm và nút
         searchPanel.setAlignment(Pos.CENTER_LEFT);
         searchPanel.setPadding(new Insets(10, 10, 10, 10));
 
         searchField = new TextField();
-        searchField.setPromptText("Tìm kiếm...");
-        Button searchButton = new Button("Tìm kiếm");
-        searchPanel.getChildren().addAll(searchField, searchButton);
+        searchField.setPromptText("Search...");
+        searchField.setPrefWidth(400); // Chiều rộng của ô tìm kiếm
 
-        // Tạo HBox với khoảng cách giữa các nút là 20
-        HBox buttonPanel = new HBox(20);
+        Button searchButton = new Button("Search");
+        searchField.setOnAction(e -> {
+            searchButton.fire(); // Kích hoạt sự kiện cho nút search
+        });
+
+        searchPanel.getChildren().addAll(searchField, searchButton); // Thêm ô tìm kiếm và nút tìm kiếm vào searchPanel
+
+        // Tạo các nút thêm, sửa, xóa, mượn/trả tài liệu
+        HBox buttonPanel = new HBox(20); // Sử dụng HBox cho layout ngang
         buttonPanel.setAlignment(Pos.CENTER);
-        buttonPanel.setPadding(new Insets(10, 10, 10, 10));
+        buttonPanel.setPadding(new Insets(10, 10, 10, 6));
 
         // Tạo các nút với kích thước lớn hơn và thêm chúng vào buttonPanel
         Button btnAdd = new Button("Thêm tài liệu");
         btnAdd.setMinWidth(180);
         btnAdd.setMinHeight(100);
-        btnAdd.setStyle("-fx-background-color: #ADD8E6; -fx-font-size: 14px;");
+        btnAdd.setStyle("-fx-background-color: linear-gradient(to right, #8A2BE2, #00BFFF);"
+                + "-fx-font-size: 17px;"
+                + "-fx-text-fill: white;" // Màu chữ trắng
+                + "-fx-font-weight: bold;" // Chữ in đậm
+                + "-fx-background-radius: 15;" // Bo tròn góc
+                + "-fx-border-radius: 15;" // Bo tròn góc cho viền (nếu có)
+        );
 
         Button btnEdit = new Button("Sửa tài liệu");
         btnEdit.setMinWidth(180);
         btnEdit.setMinHeight(100);
-        btnEdit.setStyle("-fx-background-color: #87CEFA; -fx-font-size: 14px;");
+        btnEdit.setStyle("-fx-background-color: linear-gradient(to right, #0000FF, #FF00FF);"
+                + "-fx-font-size: 17px;"
+                + "-fx-text-fill: white;" // Màu chữ trắng
+                + "-fx-font-weight: bold;" // Chữ in đậm
+                + "-fx-background-radius: 15;" // Bo tròn góc
+                + "-fx-border-radius: 15;" // Bo tròn góc cho viền (nếu có)
+        );
 
         Button btnDelete = new Button("Xóa tài liệu");
         btnDelete.setMinWidth(180);
         btnDelete.setMinHeight(100);
-        btnDelete.setStyle("-fx-background-color: #FF6347; -fx-font-size: 14px;");
+        btnDelete.setStyle("-fx-background-color: linear-gradient(to right, #FF4500, #FFA07A);"
+                + "-fx-font-size: 17px;"
+                + "-fx-text-fill: white;" // Màu chữ trắng
+                + "-fx-font-weight: bold;" // Chữ in đậm
+                + "-fx-background-radius: 15;" // Bo tròn góc
+                + "-fx-border-radius: 15;" // Bo tròn góc cho viền (nếu có)
+        );
 
         Button btnBorrowReturn = new Button("Mượn/Trả tài liệu");
         btnBorrowReturn.setMinWidth(180);
         btnBorrowReturn.setMinHeight(100);
-        btnBorrowReturn.setStyle("-fx-background-color: #FFA500; -fx-font-size: 14px;");
+        btnBorrowReturn.setStyle("-fx-background-color: linear-gradient(to right, #FFD700, #FF8C00);"
+                + "-fx-font-size: 17px;"
+                + "-fx-text-fill: white;" // Màu chữ trắng
+                + "-fx-font-weight: bold;" // Chữ in đậm
+                + "-fx-background-radius: 15;" // Bo tròn góc
+                + "-fx-border-radius: 15;" // Bo tròn góc cho viền (nếu có)
+        );
 
         // Thêm các nút vào buttonPanel và dàn đều chúng trong HBox
         buttonPanel.getChildren().addAll(btnAdd, btnEdit, btnDelete, btnBorrowReturn);
@@ -89,21 +147,22 @@ public class Main extends Application {
         table = new TableView<>();
         table.setPrefWidth(395); // Đặt chiều rộng cố định cho bảng
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); // Tự động dàn đều các cột
+        table.setStyle("-fx-background-radius: 10px; -fx-border-radius: 10px;");
 
         // Cột "Tên tài liệu"
         TableColumn<Document, String> titleColumn = new TableColumn<>("Tên tài liệu");
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
-        titleColumn.setPrefWidth(90); // Đặt chiều rộng cho cột "Tên tài liệu"
+        titleColumn.setPrefWidth(170); // Đặt chiều rộng cho cột "Tên tài liệu"
 
         // Cột "Trạng thái"
         TableColumn<Document, String> statusColumn = new TableColumn<>("Trạng thái");
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        statusColumn.setPrefWidth(90); // Đặt chiều rộng cho cột "Trạng thái"
+        statusColumn.setPrefWidth(50); // Đặt chiều rộng cho cột "Trạng thái"
 
         // Cột "Số lượng"
         TableColumn<Document, Integer> quantityColumn = new TableColumn<>("Số lượng");
         quantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
-        quantityColumn.setPrefWidth(90); // Đặt chiều rộng cho cột "Số lượng"
+        quantityColumn.setPrefWidth(50); // Đặt chiều rộng cho cột "Số lượng"
 
         // Thêm các cột vào bảng và thiết lập dữ liệu
         table.getColumns().addAll(titleColumn, statusColumn, quantityColumn);
@@ -116,15 +175,22 @@ public class Main extends Application {
         infoPanel.setSpacing(10);
         infoPanel.setPrefWidth(300); // Đặt chiều rộng cho infoPanel
 
+        // Thiết lập bo tròn góc cho toàn bộ infoPanel
+        infoPanel.setStyle("-fx-background-color: #E0F7FA; "
+                + "-fx-background-radius: 10px; "
+                + "-fx-border-radius: 10px; "
+                + "-fx-border-color: #B0BEC5;"); // Thêm màu viền nhẹ
+
         Label lblInfo = new Label("Thông tin:");
-        lblInfo.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #ADD8E6;");
+        lblInfo.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #ADD8E6;"
+                + "-fx-background-radius: 10px;");
         lblInfo.setMaxWidth(Double.MAX_VALUE);
         lblInfo.setAlignment(Pos.CENTER);
         lblInfo.setPadding(new Insets(5)); // Thêm khoảng cách xung quanh
 
         bookInfoArea = new TextArea();
         bookInfoArea.setEditable(false);
-        bookInfoArea.setStyle("-fx-control-inner-background: #F0FFFF;");
+        bookInfoArea.setStyle("-fx-control-inner-background: #F0FFFF; -fx-background-radius: 10px;");
         bookInfoArea.setPrefWidth(280);  // Đặt chiều rộng cố định cho TextArea
         bookInfoArea.setPrefHeight(200); // Đặt chiều cao mong muốn cho TextArea
         bookInfoArea.setWrapText(true);  // Bật chế độ ngắt dòng tự động nếu cần
@@ -138,6 +204,11 @@ public class Main extends Application {
         SplitPane contentPanel = new SplitPane();
         contentPanel.getItems().addAll(new ScrollPane(table), infoPanel);
         contentPanel.setDividerPositions(0.5);
+        contentPanel.setStyle("-fx-divider-width: 2px; -fx-background-color: transparent;");
+
+        // Kết hợp các thành phần chính của nội dung vào một VBox
+        VBox mainContent = new VBox(10, searchPanel, buttonPanel, contentPanel);
+        mainContent.setPadding(new Insets(10));
 
         // Xử lý sự kiện chọn tài liệu trong bảng để hiển thị chi tiết
         table.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -194,14 +265,30 @@ public class Main extends Application {
             searchDialog.search(searchField.getText().trim()); // Gọi phương thức search công khai
         });
 
-        // Bố trí tất cả các thành phần vào BorderPane chính
-        BorderPane root = new BorderPane();
-        root.setTop(searchPanel);
-        root.setCenter(buttonPanel);
-        root.setBottom(contentPanel);
+        // Xử lý sự kiện nút calendarButton
+        calendarButton.setOnAction(e -> {
+            try {
+                // Tạo một cửa sổ mới cho lịch
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Calendar.fxml"));
+                Scene calendarScene = new Scene(fxmlLoader.load());  // Tạo Scene từ calendar.fxml
 
-        // Tạo Scene và hiển thị Stage
-        Scene scene = new Scene(root, 800, 600);
+                // Tạo một Stage (cửa sổ) mới
+                Stage calendarStage = new Stage();
+                calendarStage.setTitle("Calendar");  // Đặt tiêu đề cho cửa sổ
+                calendarStage.setScene(calendarScene);  // Gán scene vào stage
+                calendarStage.show();  // Hiển thị cửa sổ
+            } catch (IOException ex) {
+                ex.printStackTrace();  // In ra lỗi nếu có vấn đề khi load FXML
+            }
+        });
+
+        // Sắp xếp tổng thể - kết hợp sidebar và nội dung chính
+        BorderPane root = new BorderPane();
+        root.setLeft(sidebar); // Đặt sidebar ở bên trái
+        root.setCenter(mainContent); // Đặt nội dung chính ở giữa
+
+        // Cài đặt Scene và hiển thị Stage
+        Scene scene = new Scene(root, 1000, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
     }

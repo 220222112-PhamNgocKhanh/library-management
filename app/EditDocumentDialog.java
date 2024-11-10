@@ -83,6 +83,7 @@ public class EditDocumentDialog extends Stage {
         grid.add(new Label("Mô tả:"), 0, 9);
         descriptionArea = new TextArea(document.getDescription());
         descriptionArea.setPrefRowCount(3);
+        descriptionArea.setWrapText(true); // Bật chế độ ngắt dòng tự động nếu cần
         grid.add(descriptionArea, 1, 9, 2, 1);
 
         Button saveButton = new Button("Lưu");
@@ -104,8 +105,8 @@ public class EditDocumentDialog extends Stage {
             String title = titleField.getText().trim();
             String author = authorField.getText().trim();
             String category = categoryField.getText().trim();
-            String status = statusComboBox.getValue();
             int quantity = Integer.parseInt(quantityField.getText().trim());
+            String status = (quantity >= 1) ? "Còn" : "Hết";
             String publisher = publisherField.getText().trim();
             String publishedDate = publishedDateField.getText().trim();
             String isbn10 = isbn10Field.getText().trim();
