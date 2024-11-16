@@ -42,7 +42,8 @@ public class Main extends Application {
         primaryStage.setTitle("Thư viện");
 
         // Gọi phương thức để tải tài liệu từ API khi khởi chạy
-        loadDocumentsFromAPI();
+        ApiToDatabase apiToDatabase = new ApiToDatabase();
+        apiToDatabase.loadDocumentsFromAPI();
 
         // Tạo sidebar với các nút chức năng
         VBox sidebar = new VBox(20); // Sử dụng VBox để tạo layout dọc, với khoảng cách giữa các phần tử là 20
@@ -305,36 +306,7 @@ public class Main extends Application {
     }
 
     // Phương thức tải dữ liệu tài liệu từ Google Books API
-    private void loadDocumentsFromAPI() {
-        new Thread(() -> {
-            int startIndex = 0;
-            int totalItems = 537; // Tổng số tài liệu cần lấy
-            int maxResults = 40;
 
-            while (startIndex < totalItems) {
-                try {
-                    String url = "https://www.googleapis.com/books/v1/volumes?q=isbn%30&startIndex=" + startIndex + "&maxResults=" + maxResults;
-                    HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-                    connection.setRequestMethod("GET");
-
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream())); // Dùng để đọc phản hồi từ API theo dòng.
-                    StringBuilder response = new StringBuilder(); // Dùng để xây dựng chuỗi phản hồi JSON
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line);
-                    }
-                    reader.close();
-
-                    parseBookDataFromAPI(response.toString());
-
-                    startIndex += maxResults; // Tăng startIndex để lấy trang tiếp theo
-                } catch (Exception e) {
-                    showAlert("Không thể lấy dữ liệu từ API.");
-                    break; // Dừng nếu có lỗi
-                }
-            }
-        }).start();
-    }
 
     // Phân tích cú pháp JSON và thêm dữ liệu vào documentList
     private void parseBookDataFromAPI(String jsonResponse) {

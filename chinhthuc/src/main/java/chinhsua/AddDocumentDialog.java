@@ -216,6 +216,7 @@ public class AddDocumentDialog extends Stage {
             documentList.add(newDocument);
 
             mainInstance.updateTable();
+
             close();
         } catch (NumberFormatException e) {
             showAlert("Lỗi", "Vui lòng nhập đúng số lượng!");

@@ -11,14 +11,16 @@ public class Document {
     private String description;
     private String isbn13;
     private String isbn10;
+    private int idDocument ;
 
     // Constructor cơ bản
-    public Document(String title, String author, String category, String status, int quantity) {
+    public Document(String title, String author, String category, String status, int quantity,int idDocument) {
         this.title = title;
         this.author = author;
         this.category = category;
         this.status = status;
         this.quantity = quantity;
+        this.idDocument = idDocument;
     }
 
     // Constructor mở rộng để khởi tạo với dữ liệu từ API
@@ -117,9 +119,17 @@ public class Document {
         this.isbn10 = isbn10;
     }
 
+    public int getIdDocument() {
+        return idDocument;
+    }
+
+    public void setIdDocument(int idDocument) {
+        this.idDocument = idDocument;
+    }
+
     @Override
     public String toString() {
-        return String.format("Title: %s\nAuthor: %s\nCategory: %s\nStatus: %s\nQuantity: %d\nPublisher: %s\nPublished Date: %s\nDescription: %s\nISBN-13: %s\nISBN-10: %s",
-                title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10);
+        return String.format("id: %d\nTitle: %s\nAuthor: %s\nCategory: %s\nStatus: %s\nQuantity: %d\nPublisher: %s\nPublished Date: %s\nDescription: %s\nISBN-13: %s\nISBN-10: %s",
+                idDocument,title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10);
     }
 }
