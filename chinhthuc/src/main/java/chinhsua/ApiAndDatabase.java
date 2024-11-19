@@ -12,14 +12,14 @@ import java.sql.SQLException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class ApiToDatabase {
+public  class ApiAndDatabase {
 
   private static final String API_URL = "https://www.googleapis.com/books/v1/volumes?q=isbn";
   private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/library";
   private static final String DB_USERNAME = "root";
   private static final String DB_PASSWORD = "khanhkhanh123";
 
-  private Connection getConnection() throws SQLException {
+ public static Connection getConnection() throws SQLException {
     return DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
   }
 
@@ -41,6 +41,8 @@ public class ApiToDatabase {
   }
 
   // Hàm để tải dữ liệu từ API và lưu vào cơ sở dữ liệu
+  // cap nhat database documents
+
   public void loadDocumentsFromAPI() {
     new Thread(() -> {
       try {
