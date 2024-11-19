@@ -1,5 +1,8 @@
 package chinhsua;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -101,7 +104,7 @@ public class EditDocumentDialog extends Stage {
     }
 
     private void saveDocument() {
-        try {
+        try (Connection connection = ApiAndDatabase.getConnection()) {
             String title = titleField.getText().trim();
             String author = authorField.getText().trim();
             String category = categoryField.getText().trim();
@@ -114,23 +117,44 @@ public class EditDocumentDialog extends Stage {
             String description = descriptionArea.getText().trim();
 
             Document document = documentList.get(selectedRow);
-            document.setTitle(title);
-            document.setAuthor(author);
-            document.setCategory(category);
-            document.setStatus(status);
-            document.setQuantity(quantity);
-            document.setPublisher(publisher);
-            document.setPublishedDate(publishedDate);
-            document.setIsbn10(isbn10); // Cập nhật ISBN 10
-            document.setIsbn13(isbn13); // Cập nhật ISBN 13
-            document.setDescription(description);
 
-            mainInstance.updateTable();
-            close();
+            String updateQuery = """
+                UPDATE documents
+                SET title = ?, author = ?, category = ?, status = ?, quantity = ?, 
+                    publisher = ?, publishedDate = ?, isbn10 = ?, isbn13 = ?, description = ?
+                WHERE idDocuments = ?
+            """;
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                preparedStatement.setString(1, title);
+                preparedStatement.setString(2, author);
+                preparedStatement.setString(3, category);
+                preparedStatement.setString(4, status);
+                preparedStatement.setInt(5, quantity);
+                preparedStatement.setString(6, publisher);
+                preparedStatement.setString(7, publishedDate);
+                preparedStatement.setString(8, isbn10);
+                preparedStatement.setString(9, isbn13);
+                preparedStatement.setString(10, description);
+                preparedStatement.setInt(11, document.getIdDocument());
+
+                int rowsAffected = preparedStatement.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    mainInstance.loadDocumentsFromDatabase();
+                    showAlert("Thông báo", "Cập nhật thành công!");
+                    close();
+                } else {
+                    showAlert("Lỗi", "Không thể cập nhật tài liệu!");
+                }
+            }
         } catch (NumberFormatException e) {
             showAlert("Lỗi", "Vui lòng nhập đúng số lượng!");
+        } catch (SQLException e) {
+            showAlert("Lỗi", "Lỗi kết nối cơ sở dữ liệu: " + e.getMessage());
         }
     }
+
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);

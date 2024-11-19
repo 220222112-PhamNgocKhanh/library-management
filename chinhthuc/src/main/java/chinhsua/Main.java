@@ -363,7 +363,7 @@ public class Main extends Application {
   }
 
   // Lấy dữ liệu từ database và thêm vào documentList
-  private void loadDocumentsFromDatabase() {
+  public void loadDocumentsFromDatabase() {
     String query = "SELECT idDocuments, title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10 FROM documents";
     try (Connection connection = ApiAndDatabase.getConnection();
 
