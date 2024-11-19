@@ -48,8 +48,6 @@ public class Main extends Application {
     apiAndDatabase.loadDocumentsFromAPI();
     loadDocumentsFromDatabase();
 
-
-
     // Tạo sidebar với các nút chức năng
     VBox sidebar = new VBox(
         20); // Sử dụng VBox để tạo layout dọc, với khoảng cách giữa các phần tử là 20
@@ -162,23 +160,29 @@ public class Main extends Application {
     table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); // Tự động dàn đều các cột
     table.setStyle("-fx-background-radius: 10px; -fx-border-radius: 10px;");
 
-    // Cột "Tên tài liệu"
+    // Thêm cột ID
+    TableColumn<Document, Integer> idColumn = new TableColumn<>("ID");
+    idColumn.setCellValueFactory(new PropertyValueFactory<>("idDocument"));
+    idColumn.setPrefWidth(50); // Đặt chiều rộng cho cột
+
+// Cột "Tên tài liệu"
     TableColumn<Document, String> titleColumn = new TableColumn<>("Tên tài liệu");
     titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
-    titleColumn.setPrefWidth(170); // Đặt chiều rộng cho cột "Tên tài liệu"
+    titleColumn.setPrefWidth(170);
 
-    // Cột "Trạng thái"
+// Cột "Trạng thái"
     TableColumn<Document, String> statusColumn = new TableColumn<>("Trạng thái");
     statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-    statusColumn.setPrefWidth(50); // Đặt chiều rộng cho cột "Trạng thái"
+    statusColumn.setPrefWidth(50);
 
-    // Cột "Số lượng"
+// Cột "Số lượng"
     TableColumn<Document, Integer> quantityColumn = new TableColumn<>("Số lượng");
     quantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
-    quantityColumn.setPrefWidth(50); // Đặt chiều rộng cho cột "Số lượng"
+    quantityColumn.setPrefWidth(50);
 
-    // Thêm các cột vào bảng và thiết lập dữ liệu
-    table.getColumns().addAll(titleColumn, statusColumn, quantityColumn);
+// Thêm các cột vào bảng
+    table.getColumns().addAll(idColumn, titleColumn, statusColumn, quantityColumn);
+
     table.setItems(observableDocumentList);
 
     // Khu vực thông tin chi tiết tài liệu
@@ -255,11 +259,48 @@ public class Main extends Application {
     btnDelete.setOnAction(e -> {
       Document selectedDocument = table.getSelectionModel().getSelectedItem();
       if (selectedDocument != null) {
-        documentList.remove(selectedDocument); // Xóa tài liệu từ danh sách
-        updateTable(); // Cập nhật lại bảng
-        bookInfoArea.clear(); // Xóa thông tin khi xóa tài liệu
+        int idDocument = selectedDocument.getIdDocument();
+        DeleteDocument deleteDocument = new DeleteDocument();
+
+        // Hiển thị xác nhận trước khi xóa
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Xác nhận xóa");
+        confirmAlert.setHeaderText("Bạn có chắc chắn muốn xóa tài liệu này?");
+        confirmAlert.setContentText(
+            "Mã:" + selectedDocument.getIdDocument() + "\nTên: " + selectedDocument.getTitle());
+
+        // Xử lý kết quả xác nhận
+        confirmAlert.showAndWait().ifPresent(response -> {
+          if (response == ButtonType.OK) {
+            boolean success = deleteDocument.deleteDocument(idDocument);
+
+            if (success) {
+              // Hiển thị thông báo xóa thành công
+              Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+              successAlert.setTitle("Thành công");
+              successAlert.setHeaderText(null);
+              successAlert.setContentText("Tài liệu đã được xóa!");
+              successAlert.showAndWait();
+
+              // Làm mới bảng dữ liệu
+              loadDocumentsFromDatabase();
+            } else {
+              // Hiển thị thông báo xóa thất bại
+              Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+              errorAlert.setTitle("Lỗi");
+              errorAlert.setHeaderText(null);
+              errorAlert.setContentText("Không thể xóa tài liệu. Vui lòng thử lại.");
+              errorAlert.showAndWait();
+            }
+          }
+        });
       } else {
-        showAlert("Vui lòng chọn tài liệu để xóa!");
+        // Hiển thị thông báo khi chưa chọn tài liệu
+        Alert warningAlert = new Alert(Alert.AlertType.WARNING);
+        warningAlert.setTitle("Cảnh báo");
+        warningAlert.setHeaderText(null);
+        warningAlert.setContentText("Vui lòng chọn một tài liệu để xóa.");
+        warningAlert.showAndWait();
       }
     });
 
@@ -311,7 +352,7 @@ public class Main extends Application {
     root.setCenter(mainContent); // Đặt nội dung chính ở giữa
 
     // Cài đặt Scene và hiển thị Stage
-    Scene scene = new Scene(root, 1000, 600);
+    Scene scene = new Scene(root, 1100, 700);
     primaryStage.setScene(scene);
     primaryStage.show();
   }
@@ -326,12 +367,13 @@ public class Main extends Application {
     String query = "SELECT idDocuments, title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10 FROM documents";
     try (Connection connection = ApiAndDatabase.getConnection();
 
-    PreparedStatement statement = connection.prepareStatement(query);
+        PreparedStatement statement = connection.prepareStatement(query);
         ResultSet resultSet = statement.executeQuery()) {
 
       documentList.clear(); // Xóa danh sách cũ để đồng bộ
 
       while (resultSet.next()) {
+        int idDocuments = resultSet.getInt("idDocuments");
         String title = resultSet.getString("title");
         String author = resultSet.getString("author");
         String category = resultSet.getString("category");
@@ -343,15 +385,17 @@ public class Main extends Application {
         String isbn13 = resultSet.getString("isbn13");
         String isbn10 = resultSet.getString("isbn10");
 
-        Document document = new Document(title, author, category, status, quantity, publisher,
+        Document document = new Document(idDocuments, title, author, category, status, quantity,
+            publisher,
             publishedDate, description, isbn13, isbn10);
         documentList.add(document);
+//        System.out.println(documentList);
       }
-
 
       updateTable(); // Cập nhật lại giao diện bảng
     } catch (SQLException e) {
-      showAlert("lỗi kết nối");; // Hoặc xử lý lỗi theo cách của bạn
+      showAlert("lỗi kết nối");
+      ; // Hoặc xử lý lỗi theo cách của bạn
     }
   }
 

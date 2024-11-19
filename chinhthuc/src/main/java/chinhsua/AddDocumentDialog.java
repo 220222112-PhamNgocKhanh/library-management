@@ -206,12 +206,17 @@ public class AddDocumentDialog extends Stage {
 
   private void addDocument() {
     try (Connection connection = ApiAndDatabase.getConnection()){
+      String title = titleField.getText().trim();
+      if (title.isEmpty()) {
+        showAlert("Lỗi", "Tên tài liệu không được để trống!", AlertType.ERROR);
+        return; // Dừng lại nếu title trống
+      }
       String insertQuery =
           "INSERT INTO documents (title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10) "
               +
               "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
       try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
-        preparedStatement.setString(1, titleField.getText().trim());
+        preparedStatement.setString(1,title);
         preparedStatement.setString(2, authorField.getText().trim());
         preparedStatement.setString(3, categoryField.getText().trim());
         preparedStatement.setString(4, statusComboBox.getValue());
