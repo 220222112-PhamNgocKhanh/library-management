@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public  class ApiAndDatabase {
+public class ApiAndDatabase {
 
   private static final String API_URL = "https://www.googleapis.com/books/v1/volumes?q=isbn";
   private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/library";
@@ -112,8 +112,8 @@ public  class ApiAndDatabase {
 
             // Lấy dữ liệu từ JSON object
             String title = book.optString("title");
-            String author = book.optString("authors", "Unknown");
-            String category = book.optString("categories", "Unknown");
+            String author = parseArrayToString(book.optJSONArray("authors"));
+            String category = parseArrayToString(book.optJSONArray("categories"));
             String status = "Available"; // Status mặc định
             int quantity = 1; // Số lượng mặc định
             String publisher = book.optString("publisher", "Unknown");
@@ -163,4 +163,19 @@ public  class ApiAndDatabase {
     // Đây là nơi bạn có thể thêm mã để hiển thị cảnh báo lỗi
     System.out.println(message);
   }
+  // Xử lý mảng (authors hoặc categories), nối các phần tử thành chuỗi
+  private String parseArrayToString(JSONArray jsonArray) {
+    if (jsonArray != null && jsonArray.length() > 0) {
+      StringBuilder stringBuilder = new StringBuilder();
+      for (int i = 0; i < jsonArray.length(); i++) {
+        if (i > 0) {
+          stringBuilder.append(", ");  // Thêm dấu phẩy giữa các phần tử
+        }
+        stringBuilder.append(jsonArray.optString(i));  // Thêm từng phần tử vào chuỗi
+      }
+      return stringBuilder.toString();
+    }
+    return "Unknown";  // Nếu không có phần tử, trả về "Unknown"
+  }
+
 }

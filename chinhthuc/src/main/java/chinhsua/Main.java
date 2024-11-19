@@ -236,6 +236,7 @@ public class Main extends Application {
       // Mở hộp thoại thêm tài liệu và cập nhật danh sách sau khi thêm
       AddDocumentDialog dialog = new AddDocumentDialog(primaryStage);
       dialog.showAndWait();
+      loadDocumentsFromDatabase();
     });
 
     // Xử lý sự kiện nút "Sửa tài liệu"
@@ -319,14 +320,11 @@ public class Main extends Application {
   private void showBookInfo(Document document) {
     bookInfoArea.setText(document.toString()); // Hiển thị chi tiết tài liệu
   }
-  private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/library";
-  private static final String DB_USERNAME = "root";
-  private static final String DB_PASSWORD = "khanhkhanh123";
 
   // Lấy dữ liệu từ database và thêm vào documentList
   private void loadDocumentsFromDatabase() {
     String query = "SELECT idDocuments, title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10 FROM documents";
-    try (Connection connection =  DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+    try (Connection connection = ApiAndDatabase.getConnection();
 
     PreparedStatement statement = connection.prepareStatement(query);
         ResultSet resultSet = statement.executeQuery()) {

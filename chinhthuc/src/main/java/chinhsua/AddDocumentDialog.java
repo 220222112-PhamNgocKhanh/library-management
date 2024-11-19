@@ -205,7 +205,7 @@ public class AddDocumentDialog extends Stage {
 
 
   private void addDocument() {
-    try (Connection connection = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD)) {
+    try (Connection connection = ApiAndDatabase.getConnection()){
       String insertQuery =
           "INSERT INTO documents (title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10) "
               +
