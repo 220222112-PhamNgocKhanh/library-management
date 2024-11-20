@@ -1,14 +1,17 @@
 package chinhsua;
 
 
+import eu.hansolo.fx.countries.tools.Api;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -203,20 +206,41 @@ public class AddDocumentDialog extends Stage {
     }
   }
 
+  public static boolean isDocumentExists(String title) {
+    String query = "SELECT COUNT(*) FROM documents WHERE title = ?";
+    try (Connection connection = ApiAndDatabase.getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+      preparedStatement.setString(1, title);
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        if (resultSet.next()) {
+          return resultSet.getInt(1) > 0;
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("Lỗi khi kiểm tra tài liệu: " + e.getMessage());
+    }
+    return false;
+  }
 
   private void addDocument() {
-    try (Connection connection = ApiAndDatabase.getConnection()){
+    try (Connection connection = ApiAndDatabase.getConnection()) {
       String title = titleField.getText().trim();
       if (title.isEmpty()) {
         showAlert("Lỗi", "Tên tài liệu không được để trống!", AlertType.ERROR);
         return; // Dừng lại nếu title trống
+      }
+      if (isDocumentExists(title)) {
+        // Hiển thị bảng chứa thông tin các tài liệu trùng tên
+        showDuplicateDocuments(title);
+        return;
       }
       String insertQuery =
           "INSERT INTO documents (title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10) "
               +
               "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
       try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
-        preparedStatement.setString(1,title);
+        preparedStatement.setString(1, title);
         preparedStatement.setString(2, authorField.getText().trim());
         preparedStatement.setString(3, categoryField.getText().trim());
         preparedStatement.setString(4, statusComboBox.getValue());
@@ -228,7 +252,7 @@ public class AddDocumentDialog extends Stage {
         preparedStatement.setString(10, isbn10Field.getText().trim());
 
         preparedStatement.executeUpdate();
-        showAlert("Thành công", "Tài liệu đã được thêm vào cơ sở dữ liệu.",AlertType.INFORMATION);
+        showAlert("Thành công", "Tài liệu đã được thêm vào cơ sở dữ liệu.", AlertType.INFORMATION);
         close();
       }
     } catch (SQLException e) {
@@ -246,6 +270,82 @@ public class AddDocumentDialog extends Stage {
     alert.setContentText(message);
     alert.initOwner(this);
     alert.showAndWait();
+  }
+
+  private void showDuplicateDocuments(String title) {
+    Stage duplicateStage = new Stage();
+    duplicateStage.initOwner(this);
+    duplicateStage.initModality(Modality.APPLICATION_MODAL);
+    duplicateStage.setTitle("Tài liệu trùng tên");
+
+    TableView<Document> duplicateTable = new TableView<>();
+// Cột id
+    TableColumn<Document, Integer> idColumn = new TableColumn<>("ID");
+    idColumn.setCellValueFactory(new PropertyValueFactory<>("idDocument"));
+    idColumn.setPrefWidth(50); // Đặt chiều rộng cho cột
+
+// Cột "Tên tài liệu"
+    TableColumn<Document, String> titleColumn = new TableColumn<>("Tên tài liệu");
+    titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
+    titleColumn.setPrefWidth(170);
+
+// Cột "Tác giả"
+    TableColumn<Document, String> authorColumn = new TableColumn<>("Tác giả");
+    authorColumn.setCellValueFactory(new PropertyValueFactory<>("author"));
+    authorColumn.setPrefWidth(200);
+
+// Cột thể loại
+    TableColumn<Document, String> categoryColumn = new TableColumn<>("Thể loại");
+    categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
+    categoryColumn.setPrefWidth(150);
+// Cột trạng thái
+    TableColumn<Document, String> statusColumn = new TableColumn<>("Trạng thái");
+    statusColumn.setCellValueFactory(new PropertyValueFactory<>("author"));
+    statusColumn.setPrefWidth(80);
+    duplicateTable.getColumns().addAll(titleColumn, authorColumn, categoryColumn, statusColumn);
+
+    // Tải dữ liệu từ cơ sở dữ liệu
+    duplicateTable.getItems().addAll(fetchDuplicateDocuments(title));
+
+    Button closeButton = new Button("Đóng");
+    closeButton.setOnAction(e -> duplicateStage.close());
+
+    GridPane layout = new GridPane();
+    layout.setPadding(new Insets(10));
+    layout.setVgap(10);
+    layout.add(new Label("Danh sách tài liệu trùng tên:"), 0, 0);
+    layout.add(duplicateTable, 0, 1);
+    layout.add(closeButton, 0, 2);
+
+    Scene scene = new Scene(layout);
+    duplicateStage.setScene(scene);
+    duplicateStage.setResizable(false);
+    duplicateStage.showAndWait();
+  }
+
+  private ArrayList<Document> fetchDuplicateDocuments(String title) {
+    ArrayList<Document> duplicates = new ArrayList<>();
+    String query = "SELECT * FROM documents WHERE title = ?";
+
+    try (Connection connection = ApiAndDatabase.getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+      preparedStatement.setString(1, title);
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        while (resultSet.next()) {
+          Document document = new Document();
+          document.setTitle(resultSet.getString("title"));
+          document.setAuthor(resultSet.getString("author"));
+          document.setCategory(resultSet.getString("category"));
+          document.setStatus(resultSet.getString("status"));
+          duplicates.add(document);
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("Lỗi khi tải tài liệu trùng tên: " + e.getMessage());
+    }
+
+    return duplicates;
   }
 
 }

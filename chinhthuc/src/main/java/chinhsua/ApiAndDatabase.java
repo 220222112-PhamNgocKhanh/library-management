@@ -114,8 +114,8 @@ public class ApiAndDatabase {
             String title = book.optString("title");
             String author = parseArrayToString(book.optJSONArray("authors"));
             String category = parseArrayToString(book.optJSONArray("categories"));
-            String status = "Available"; // Status mặc định
-            int quantity = 1; // Số lượng mặc định
+            String status = "Còn"; // Status mặc định
+            int quantity = 100; // Số lượng mặc định
             String publisher = book.optString("publisher", "Unknown");
             String publishedDate = book.optString("publishedDate", "Unknown");
             String description = book.optString("description", "No description");
