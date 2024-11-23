@@ -88,8 +88,15 @@ public class Main extends Application {
     searchField = new TextField();
     searchField.setPromptText("Search...");
     searchField.setPrefWidth(400); // Chiều rộng của ô tìm kiếm
-
+    searchField.setStyle("-fx-background-radius: 15;");
     Button searchButton = new Button("Search");
+    searchButton.setStyle(
+        "-fx-background-color: linear-gradient(to bottom right, #00FFD1, #0099FF);"
+            + "-fx-font-size: 11px;"
+            + "-fx-text-fill: white;" // Màu chữ trắng
+            + "-fx-font-weight: bold;" // Chữ in đậm
+            + "-fx-background-radius: 15;" // Bo tròn góc
+    );
     searchField.setOnAction(e -> {
       searchButton.fire(); // Kích hoạt sự kiện cho nút search
     });
@@ -319,9 +326,15 @@ public class Main extends Application {
 
     // Xử lý sự kiện nút "Tìm kiếm"
     searchButton.setOnAction(e -> {
-      SearchDialog searchDialog = new SearchDialog(primaryStage, documentList, table, bookInfoArea);
-      searchDialog.search(searchField.getText().trim()); // Gọi phương thức search công khai
+      String searchTerm = searchField.getText().trim();
+      if (!searchTerm.isEmpty()) {
+        SearchDialog searchDialog = new SearchDialog(primaryStage, documentList, table, bookInfoArea);
+        searchDialog.search(searchTerm); // Kích hoạt tìm kiếm trực tiếp
+      } else {
+        showAlert("Vui lòng nhập từ khóa tìm kiếm!");
+      }
     });
+
 
     // Xử lý sự kiện nút calendarButton
     calendarButton.setOnAction(e -> {
@@ -364,7 +377,7 @@ public class Main extends Application {
 
   // Lấy dữ liệu từ database và thêm vào documentList
   public void loadDocumentsFromDatabase() {
-    String query = "SELECT idDocuments, title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10 FROM documents";
+    String query = "SELECT iddocument, title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10 FROM document";
     try (Connection connection = ApiAndDatabase.getConnection();
 
         PreparedStatement statement = connection.prepareStatement(query);
@@ -373,7 +386,7 @@ public class Main extends Application {
       documentList.clear(); // Xóa danh sách cũ để đồng bộ
 
       while (resultSet.next()) {
-        int idDocuments = resultSet.getInt("idDocuments");
+        int iddocument = resultSet.getInt("iddocument");
         String title = resultSet.getString("title");
         String author = resultSet.getString("author");
         String category = resultSet.getString("category");
@@ -385,7 +398,7 @@ public class Main extends Application {
         String isbn13 = resultSet.getString("isbn13");
         String isbn10 = resultSet.getString("isbn10");
 
-        Document document = new Document(idDocuments, title, author, category, status, quantity,
+        Document document = new Document(iddocument, title, author, category, status, quantity,
             publisher,
             publishedDate, description, isbn13, isbn10);
         documentList.add(document);
@@ -415,4 +428,5 @@ public class Main extends Application {
     alert.setContentText(message);
     alert.showAndWait();
   }
+
 }

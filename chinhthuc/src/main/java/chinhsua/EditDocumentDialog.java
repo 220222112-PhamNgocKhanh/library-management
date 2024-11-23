@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -119,10 +120,10 @@ public class EditDocumentDialog extends Stage {
             Document document = documentList.get(selectedRow);
 
             String updateQuery = """
-                UPDATE documents
+                UPDATE document
                 SET title = ?, author = ?, category = ?, status = ?, quantity = ?, 
                     publisher = ?, publishedDate = ?, isbn10 = ?, isbn13 = ?, description = ?
-                WHERE idDocuments = ?
+                WHERE iddocument = ?
             """;
 
             try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -142,22 +143,31 @@ public class EditDocumentDialog extends Stage {
 
                 if (rowsAffected > 0) {
                     mainInstance.loadDocumentsFromDatabase();
-                    showAlert("Thông báo", "Cập nhật thành công!");
+                    showAlert("Thông báo", "Cập nhật thành công!",AlertType.INFORMATION);
                     close();
                 } else {
-                    showAlert("Lỗi", "Không thể cập nhật tài liệu!");
+                    showAlert("Lỗi", "Không thể cập nhật tài liệu!",AlertType.ERROR);
                 }
             }
         } catch (NumberFormatException e) {
-            showAlert("Lỗi", "Vui lòng nhập đúng số lượng!");
+            showAlert("Lỗi", "Vui lòng nhập đúng số lượng!",AlertType.ERROR);
         } catch (SQLException e) {
-            showAlert("Lỗi", "Lỗi kết nối cơ sở dữ liệu: " + e.getMessage());
+            showAlert("Lỗi", "Lỗi kết nối cơ sở dữ liệu: ",AlertType.ERROR);
         }
     }
+    public EditDocumentDialog() {
+
+    }
+
+    /**
+     * phuong thuc chinh sua du lieu phuc vu cho class addDocument
+     * @param document tai lieu can chinh sua
+     */
 
 
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+
+    private void showAlert(String title, String message, Alert.AlertType alertType) {
+        Alert alert = new Alert(alertType); // Sử dụng kiểu thông báo được truyền vào
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);

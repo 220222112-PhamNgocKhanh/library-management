@@ -26,7 +26,7 @@ public class ApiAndDatabase {
   // Kiểm tra xem trong database đã có tài liệu hay chưa
   private boolean isDataInDatabase() {
     try (Connection connection = getConnection()) {
-      String checkQuery = "SELECT COUNT(*) FROM documents";
+      String checkQuery = "SELECT COUNT(*) FROM document";
       try (PreparedStatement preparedStatement = connection.prepareStatement(checkQuery);
           ResultSet resultSet = preparedStatement.executeQuery()) {
         if (resultSet.next()) {
@@ -41,7 +41,7 @@ public class ApiAndDatabase {
   }
 
   // Hàm để tải dữ liệu từ API và lưu vào cơ sở dữ liệu
-  // cap nhat database documents
+  // cap nhat database document
 
   public void loadDocumentsFromAPI() {
     new Thread(() -> {
@@ -104,7 +104,7 @@ public class ApiAndDatabase {
       JSONArray items = jsonResponse.getJSONArray("items");
 
       try (Connection connection = getConnection()) {
-        String insertQuery = "INSERT INTO documents (title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10) " +
+        String insertQuery = "INSERT INTO document (title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
           for (int i = 0; i < items.length(); i++) {

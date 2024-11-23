@@ -13,6 +13,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.json.JSONArray;
@@ -206,63 +207,206 @@ public class AddDocumentDialog extends Stage {
     }
   }
 
-  public static boolean isDocumentExists(String title) {
-    String query = "SELECT COUNT(*) FROM documents WHERE title = ?";
-    try (Connection connection = ApiAndDatabase.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-
-      preparedStatement.setString(1, title);
-      try (ResultSet resultSet = preparedStatement.executeQuery()) {
-        if (resultSet.next()) {
-          return resultSet.getInt(1) > 0;
-        }
-      }
-    } catch (SQLException e) {
-      System.err.println("Lỗi khi kiểm tra tài liệu: " + e.getMessage());
-    }
-    return false;
-  }
-
+  //nhập thông tin vào bảng thêm tài liệu và kiểm tra ngoại lệ
   private void addDocument() {
-    try (Connection connection = ApiAndDatabase.getConnection()) {
+    try {
       String title = titleField.getText().trim();
+      String author = authorField.getText().trim();
+      String category = categoryField.getText().trim();
+      String status = statusComboBox.getValue();
+      int quantity = Integer.parseInt(quantityField.getText().trim());
+      String publisher = publisherField.getText().trim();
+      String publishedDate = publishedDateField.getText().trim();
+      String description = descriptionArea.getText().trim();
+      String isbn13 = isbn13Field.getText().trim();
+      String isbn10 = isbn10Field.getText().trim();
       if (title.isEmpty()) {
-        showAlert("Lỗi", "Tên tài liệu không được để trống!", AlertType.ERROR);
-        return; // Dừng lại nếu title trống
-      }
-      if (isDocumentExists(title)) {
-        // Hiển thị bảng chứa thông tin các tài liệu trùng tên
-        showDuplicateDocuments(title);
+        showAlert("Lỗi", "Tên tài liệu không được để trống!", Alert.AlertType.ERROR);
         return;
       }
-      String insertQuery =
-          "INSERT INTO documents (title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10) "
-              +
-              "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-      try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
-        preparedStatement.setString(1, title);
-        preparedStatement.setString(2, authorField.getText().trim());
-        preparedStatement.setString(3, categoryField.getText().trim());
-        preparedStatement.setString(4, statusComboBox.getValue());
-        preparedStatement.setInt(5, Integer.parseInt(quantityField.getText().trim()));
-        preparedStatement.setString(6, publisherField.getText().trim());
-        preparedStatement.setString(7, publishedDateField.getText().trim());
-        preparedStatement.setString(8, descriptionArea.getText().trim());
-        preparedStatement.setString(9, isbn13Field.getText().trim());
-        preparedStatement.setString(10, isbn10Field.getText().trim());
-
-        preparedStatement.executeUpdate();
-        showAlert("Thành công", "Tài liệu đã được thêm vào cơ sở dữ liệu.", AlertType.INFORMATION);
-        close();
+      ;
+      if (quantity < 0) {
+        showAlert("Lỗi", "Số lượng tài liệu không được nhỏ hơn 0!", AlertType.ERROR);
+        return;
       }
-    } catch (SQLException e) {
-      showAlert("Lỗi", "Không thể thêm tài liệu vào cơ sở dữ liệu.", AlertType.ERROR);
-      e.printStackTrace();
+      Document document = new Document(title, author, category, status, quantity, publisher,
+          publishedDate, description, isbn13, isbn10);
+      try (Connection connection = ApiAndDatabase.getConnection()) {
+        // Tìm kiếm các tài liệu trùng tên
+        String query = "SELECT * FROM document WHERE title = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+          preparedStatement.setString(1, title);
+          ResultSet resultSet = preparedStatement.executeQuery();
+
+          // Nếu có tài liệu trùng tên
+          if (resultSet.next()) {
+            // Hiển thị cửa sổ chứa danh sách tài liệu trùng tên
+            showDuplicateDocuments(resultSet, connection, document);
+            return;
+          }
+        }
+
+        // Nếu không có tài liệu trùng, thực hiện thêm mới
+        insertNewDocument(connection, document);
+      }
     } catch (NumberFormatException e) {
-      showAlert("Lỗi", "Vui lòng nhập đúng số lượng!", AlertType.ERROR);
+      showAlert("Lỗi", "Vui lòng nhập số lượng sách!", AlertType.ERROR);
+    } catch (SQLException e) {
+      showAlert("Lỗi", "Không thể kiểm tra tài liệu trong cơ sở dữ liệu.", AlertType.ERROR);
     }
   }
 
+  //hiển thị danh sách những tài liệu trùng tên lên một cửa sổ khác và những trường xử lý
+  private void showDuplicateDocuments(ResultSet resultSet, Connection connection, Document document)
+      throws SQLException {
+    Stage duplicateStage = new Stage();
+    duplicateStage.initModality(Modality.APPLICATION_MODAL);
+    duplicateStage.setTitle("Tài liệu trùng tên");
+
+    // Tạo TableView
+    TableView<Document> tableView = new TableView<>();
+
+    TableColumn<Document, Integer> idDocumentCol = new TableColumn<>("ID Tài liệu");
+    idDocumentCol.setCellValueFactory(new PropertyValueFactory<>("idDocument"));
+
+    TableColumn<Document, String> titleCol = new TableColumn<>("Tên tài liệu");
+    titleCol.setCellValueFactory(new PropertyValueFactory<>("title"));
+
+    TableColumn<Document, String> authorCol = new TableColumn<>("Tác giả");
+    authorCol.setCellValueFactory(new PropertyValueFactory<>("author"));
+
+    TableColumn<Document, Integer> quantityCol = new TableColumn<>("Số lượng");
+    quantityCol.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+
+    TableColumn<Document, String> categoryCol = new TableColumn<>("Thể loại");
+    categoryCol.setCellValueFactory(new PropertyValueFactory<>("category"));
+
+    TableColumn<Document, String> isbn13Col = new TableColumn<>("isbn13");
+    isbn13Col.setCellValueFactory(new PropertyValueFactory<>("isbn13"));
+
+    TableColumn<Document, String> isbn10Col = new TableColumn<>("isbn10");
+    isbn10Col.setCellValueFactory(new PropertyValueFactory<>("isbn10"));
+
+    tableView.getColumns().addAll(idDocumentCol, titleCol, authorCol, categoryCol, quantityCol,isbn13Col, isbn10Col);
+
+    // Nạp dữ liệu từ ResultSet
+    ArrayList<Document> duplicateList = new ArrayList<>();
+    do {
+      Document doc = new Document();
+      doc.setIdDocument(resultSet.getInt("idDocument")); // Lấy ID
+      doc.setTitle(resultSet.getString("title"));
+      doc.setCategory(resultSet.getString("category"));
+      doc.setIsbn10(resultSet.getString("isbn10"));
+      doc.setIsbn13(resultSet.getString("isbn13"));
+      doc.setAuthor(resultSet.getString("author"));
+      doc.setQuantity(resultSet.getInt("quantity"));
+      duplicateList.add(doc);
+    } while (resultSet.next());
+    tableView.getItems().addAll(duplicateList);
+
+    // Nút "Thêm mới"
+    Button addNewButton = new Button("Thêm mới");
+    addNewButton.setOnAction(e -> {
+      try {
+        duplicateStage.close();
+        insertNewDocument(connection, document);
+      } catch (SQLException ex) {
+        showAlert("Lỗi", "Không thể thêm tài liệu mới.", AlertType.ERROR);
+        ex.printStackTrace();
+      }
+      mainInstance.loadDocumentsFromDatabase();
+    });
+
+    // Nút "Chỉnh sửa"
+    Button editButton = new Button("Chỉnh sửa");
+    editButton.setOnAction(e -> {
+      Document selectedDoc = tableView.getSelectionModel().getSelectedItem();
+      if (selectedDoc == null) {
+        showAlert("Lỗi", "Vui lòng chọn tài liệu để chỉnh sửa.", AlertType.ERROR);
+        return;
+      }
+      duplicateStage.close();
+      updateDocumentInDatabase(document,selectedDoc.getIdDocument());
+      mainInstance.loadDocumentsFromDatabase();
+    });
+
+    Button closeButton = new Button("Hủy");
+    closeButton.setOnAction(e -> duplicateStage.close());
+
+    VBox layout = new VBox(10, new Label("Danh sách tài liệu trùng tên:"), tableView,
+        addNewButton, editButton, closeButton);
+    layout.setPadding(new Insets(10));
+    Scene scene = new Scene(layout, 800, 600);
+    duplicateStage.setScene(scene);
+    duplicateStage.showAndWait();
+  }
+
+
+  //thêm mới tài liệu
+  private void insertNewDocument(Connection connection, Document document) throws SQLException {
+    String insertQuery =
+        "INSERT INTO document (title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+      preparedStatement.setString(1, document.getTitle());
+      preparedStatement.setString(2, document.getAuthor());
+      preparedStatement.setString(3, document.getCategory());
+      preparedStatement.setString(4, document.getStatus());
+      preparedStatement.setInt(5, document.getQuantity());
+      preparedStatement.setString(6, document.getPublisher());
+      preparedStatement.setString(7, document.getPublishedDate());
+      preparedStatement.setString(8, document.getDescription());
+      preparedStatement.setString(9, document.getIsbn13());
+      preparedStatement.setString(10, document.getIsbn10());
+
+      preparedStatement.executeUpdate();
+      showAlert("Thành công", "Tài liệu đã được thêm vào cơ sở dữ liệu.", AlertType.INFORMATION);
+      close();
+
+    }
+  }
+
+  /**
+   * cap nhat tai lieu dua vao thong tin nhap va id
+   * @param document tai lieu can cap nhat
+   * @param id id cua sach
+   */
+  public void updateDocumentInDatabase(Document document,int id) {
+
+
+    String updateQuery = "UPDATE document SET title = ?, author = ?, category = ?, status = ?, " +
+        "quantity = ?, publisher = ?, publishedDate = ?, description = ?, " +
+        "isbn13 = ?, isbn10 = ? WHERE idDocument = ?";
+
+    try (Connection connection = ApiAndDatabase.getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+
+      // Gán giá trị cho các tham số
+      preparedStatement.setString(1, document.getTitle());
+      preparedStatement.setString(2, document.getAuthor());
+      preparedStatement.setString(3, document.getCategory());
+      preparedStatement.setString(4, document.getStatus());
+      preparedStatement.setInt(5, document.getQuantity());
+      preparedStatement.setString(6, document.getPublisher());
+      preparedStatement.setString(7, document.getPublishedDate());
+      preparedStatement.setString(8, document.getDescription());
+      preparedStatement.setString(9, document.getIsbn13());
+      preparedStatement.setString(10, document.getIsbn10());
+      preparedStatement.setInt(11,id);
+
+      // Thực hiện cập nhật
+      int rowsAffected = preparedStatement.executeUpdate();
+      if (rowsAffected > 0) {
+        showAlert("Thành công", "Cập nhật tài liệu thành công.", Alert.AlertType.INFORMATION);
+      } else {
+        showAlert("Thông báo", "Không tìm thấy tài liệu để cập nhật.", Alert.AlertType.WARNING);
+      }
+      close();
+    } catch (SQLException e) {
+      e.printStackTrace();
+      showAlert("Lỗi", "Không thể cập nhật tài liệu.", Alert.AlertType.ERROR);
+    }
+  }
   private void showAlert(String title, String message, Alert.AlertType alertType) {
     Alert alert = new Alert(alertType); // Sử dụng kiểu thông báo được truyền vào
     alert.setTitle(title);
@@ -272,80 +416,5 @@ public class AddDocumentDialog extends Stage {
     alert.showAndWait();
   }
 
-  private void showDuplicateDocuments(String title) {
-    Stage duplicateStage = new Stage();
-    duplicateStage.initOwner(this);
-    duplicateStage.initModality(Modality.APPLICATION_MODAL);
-    duplicateStage.setTitle("Tài liệu trùng tên");
-
-    TableView<Document> duplicateTable = new TableView<>();
-// Cột id
-    TableColumn<Document, Integer> idColumn = new TableColumn<>("ID");
-    idColumn.setCellValueFactory(new PropertyValueFactory<>("idDocument"));
-    idColumn.setPrefWidth(50); // Đặt chiều rộng cho cột
-
-// Cột "Tên tài liệu"
-    TableColumn<Document, String> titleColumn = new TableColumn<>("Tên tài liệu");
-    titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
-    titleColumn.setPrefWidth(170);
-
-// Cột "Tác giả"
-    TableColumn<Document, String> authorColumn = new TableColumn<>("Tác giả");
-    authorColumn.setCellValueFactory(new PropertyValueFactory<>("author"));
-    authorColumn.setPrefWidth(200);
-
-// Cột thể loại
-    TableColumn<Document, String> categoryColumn = new TableColumn<>("Thể loại");
-    categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
-    categoryColumn.setPrefWidth(150);
-// Cột trạng thái
-    TableColumn<Document, String> statusColumn = new TableColumn<>("Trạng thái");
-    statusColumn.setCellValueFactory(new PropertyValueFactory<>("author"));
-    statusColumn.setPrefWidth(80);
-    duplicateTable.getColumns().addAll(titleColumn, authorColumn, categoryColumn, statusColumn);
-
-    // Tải dữ liệu từ cơ sở dữ liệu
-    duplicateTable.getItems().addAll(fetchDuplicateDocuments(title));
-
-    Button closeButton = new Button("Đóng");
-    closeButton.setOnAction(e -> duplicateStage.close());
-
-    GridPane layout = new GridPane();
-    layout.setPadding(new Insets(10));
-    layout.setVgap(10);
-    layout.add(new Label("Danh sách tài liệu trùng tên:"), 0, 0);
-    layout.add(duplicateTable, 0, 1);
-    layout.add(closeButton, 0, 2);
-
-    Scene scene = new Scene(layout);
-    duplicateStage.setScene(scene);
-    duplicateStage.setResizable(false);
-    duplicateStage.showAndWait();
-  }
-
-  private ArrayList<Document> fetchDuplicateDocuments(String title) {
-    ArrayList<Document> duplicates = new ArrayList<>();
-    String query = "SELECT * FROM documents WHERE title = ?";
-
-    try (Connection connection = ApiAndDatabase.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-
-      preparedStatement.setString(1, title);
-      try (ResultSet resultSet = preparedStatement.executeQuery()) {
-        while (resultSet.next()) {
-          Document document = new Document();
-          document.setTitle(resultSet.getString("title"));
-          document.setAuthor(resultSet.getString("author"));
-          document.setCategory(resultSet.getString("category"));
-          document.setStatus(resultSet.getString("status"));
-          duplicates.add(document);
-        }
-      }
-    } catch (SQLException e) {
-      System.err.println("Lỗi khi tải tài liệu trùng tên: " + e.getMessage());
-    }
-
-    return duplicates;
-  }
 
 }
