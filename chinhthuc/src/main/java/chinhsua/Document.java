@@ -27,6 +27,11 @@ public class Document {
     this.quantity = quantity;
     this.idDocument = idDocument;
   }
+  public Document(int idDocument, String title, String author) {
+    this.idDocument = idDocument;
+    this.title = title;
+    this.author = author;
+  }
 
   public Document(int idDocument,String title, String author, String category, String status, int quantity,
       String publisher, String publishedDate, String description, String isbn13, String isbn10) {

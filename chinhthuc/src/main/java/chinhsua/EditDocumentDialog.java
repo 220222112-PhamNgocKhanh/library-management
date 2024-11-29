@@ -155,15 +155,6 @@ public class EditDocumentDialog extends Stage {
             showAlert("Lỗi", "Lỗi kết nối cơ sở dữ liệu: ",AlertType.ERROR);
         }
     }
-    public EditDocumentDialog() {
-
-    }
-
-    /**
-     * phuong thuc chinh sua du lieu phuc vu cho class addDocument
-     * @param document tai lieu can chinh sua
-     */
-
 
 
     private void showAlert(String title, String message, Alert.AlertType alertType) {

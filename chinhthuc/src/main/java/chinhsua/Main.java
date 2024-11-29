@@ -65,10 +65,10 @@ public class Main extends Application {
     Button introButton = new Button("Giới thiệu");
     Button noteButton = new Button("Ghi chú");
     Button calendarButton = new Button("Lịch");
-    Button btnThanhVien = new Button("Thành viên");
+    Button borrowerButton = new Button("Người mượn");
 
     // Định dạng cho các nút chức năng trong sidebar
-    for (Button btn : new Button[]{introButton, noteButton, calendarButton, btnThanhVien}) {
+    for (Button btn : new Button[]{introButton, noteButton, calendarButton, borrowerButton}) {
       btn.setStyle(
           "-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 16px; -fx-alignment: CENTER_LEFT;");
       btn.setMaxWidth(
@@ -78,7 +78,7 @@ public class Main extends Application {
     }
 
     // Thêm tiêu đề và các nút vào sidebar
-    sidebar.getChildren().addAll(title, introButton, noteButton, calendarButton, btnThanhVien);
+    sidebar.getChildren().addAll(title, introButton, noteButton, calendarButton, borrowerButton);
 
     // Tạo phần nội dung chính - bao gồm thanh tìm kiếm và các nút chức năng
     HBox searchPanel = new HBox(10); // Sử dụng HBox để tạo thanh tìm kiếm và nút
@@ -358,6 +358,11 @@ public class Main extends Application {
     // Gán các hành động cho nút sử dụng các phương thức trong FileHandler
     introButton.setOnAction(e -> fileHandler.introduce());
     noteButton.setOnAction(e -> fileHandler.note());
+
+    //hanh dong cho nut nguoi muon
+    borrowerButton.setOnAction(e -> {
+      borrowerManagementDialog borrowerManagementDialog = new borrowerManagementDialog(this);
+    });
 
     // Sắp xếp tổng thể - kết hợp sidebar và nội dung chính
     BorderPane root = new BorderPane();

@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class DeleteDocument {
   public boolean deleteDocument(int idDocument) {
-    String query = "DELETE FROM document WHERE iddocument = ?";
+    String query = "DELETE FROM document WHERE idDocument = ?";
     try (Connection conn = ApiAndDatabase.getConnection();
         PreparedStatement stmt = conn.prepareStatement(query)) {
       stmt.setInt(1, idDocument);

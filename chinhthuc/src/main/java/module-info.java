@@ -7,6 +7,7 @@ module code.chinhthuc {
   requires java.sql;
   requires eu.hansolo.fx.countries;
   requires java.desktop;
+  requires mysql.connector.j;
 
   exports code.chinhthuc;
     exports chinhsua;
