@@ -96,20 +96,50 @@ public class borrowerManagementDialog extends Stage {
     tableAndDetail.getChildren().addAll(leftTable, detailArea);
     HBox.setHgrow(detailArea, Priority.ALWAYS);
 
-    // Các nút chức năng
-    HBox buttonBox = new HBox(20);
-    Button addButton = new Button("Thêm");
+    // Hàng nút đầu tiên
+    HBox row1 = new HBox(20);
+    row1.setAlignment(Pos.CENTER);
+
+
+    Button addButton = new Button("Thêm người mượn");
     addButton.setPrefWidth(150);
-    Button editButton = new Button("Sửa");
+    addButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
+
+    Button editButton = new Button("Sửa người mượn");
     editButton.setPrefWidth(150);
-    Button deleteButton = new Button("Xóa");
+    editButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
+
+    Button deleteButton = new Button("Xóa người mượn");
     deleteButton.setPrefWidth(150);
-    Button historyButton = new Button("Lịch sử mượn");
-    historyButton.setPrefWidth(150);
+    deleteButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
+
+    row1.getChildren().addAll(addButton, editButton, deleteButton);
+
+// Hàng nút thứ hai
+    HBox row2 = new HBox(20);
+    row2.setAlignment(Pos.CENTER);
+
+
+    Button borrowButton = new Button("Mượn tài liệu");
+    borrowButton.setPrefWidth(150);
+    borrowButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
+
+    Button returnButton = new Button("Trả tài liệu");
+    returnButton.setPrefWidth(150);
+    returnButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
+
     Button cancel = new Button("Thoát");
     cancel.setPrefWidth(150);
-    buttonBox.getChildren().addAll(addButton, editButton, deleteButton,historyButton, cancel);
+    cancel.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
+
+    row2.getChildren().addAll(borrowButton, returnButton, cancel);
+
+
+// Đưa hai hàng nút vào VBox
+    VBox buttonBox = new VBox(10);
+    buttonBox.getChildren().addAll(row1, row2);
     buttonBox.setAlignment(Pos.CENTER);
+    buttonBox.setStyle("-fx-border-color: lightgray; -fx-border-radius: 5;");
 
     // Layout chính
     VBox layout = new VBox(10);
@@ -161,7 +191,7 @@ public class borrowerManagementDialog extends Stage {
     });
 
     //xử lý chức năng hiển thị lịch sử
-    historyButton.setOnAction(e -> {
+    returnButton.setOnAction(e -> {
       Borrower selectedBorrower = leftTable.getSelectionModel().getSelectedItem();
       if(selectedBorrower == null) {
         showAlert("Lỗi","Vui lòng chọn người mượn để thao tác",AlertType.ERROR);
@@ -172,7 +202,6 @@ public class borrowerManagementDialog extends Stage {
 
       }
     });
-
   }
 
 
