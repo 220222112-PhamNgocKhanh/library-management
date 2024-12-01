@@ -1,0 +1,23 @@
+/* styles.css */
+.table-row-cell.borrowed {
+    -fx-background-color: lightgreen;
+
+}
+
+.table-row-cell.overdue {
+    -fx-background-color: lightcoral;
+
+}
+
+.table-row-cell.returned {
+    -fx-background-color: white;
+
+}
+
+/* Khi hàng được chọn */
+.table-row-cell:selected .table-cell {
+    -fx-background-color: -fx-background;
+    -fx-text-fill: -fx-text-inner-color;
+    -fx-border-color: -fx-box-border;
+    -fx-border-width: 1px;
+}

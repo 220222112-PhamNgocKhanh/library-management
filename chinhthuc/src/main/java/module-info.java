@@ -5,7 +5,6 @@ module code.chinhthuc {
     requires com.dlsc.formsfx;
     requires org.json;
   requires java.sql;
-  requires eu.hansolo.fx.countries;
   requires java.desktop;
   requires mysql.connector.j;
 

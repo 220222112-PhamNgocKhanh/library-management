@@ -1,6 +1,7 @@
 package chinhsua;
 
 import java.sql.*;
+import java.time.LocalDate;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -10,6 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -25,9 +27,11 @@ public class BorrowHistoryDialog extends Stage {
 
   private int selectedBorrowerId;
   private int selectedDocumentId;
+  Main mainInstance;
 
-  public BorrowHistoryDialog(int borrowerId,Main mainInstance) {
+  public BorrowHistoryDialog(int borrowerId, Main mainInstance) {
     this.selectedBorrowerId = borrowerId;
+    this.mainInstance = mainInstance;
 
     Stage historyStage = new Stage();
     historyStage.initModality(Modality.APPLICATION_MODAL);
@@ -37,127 +41,112 @@ public class BorrowHistoryDialog extends Stage {
     historyTable = new TableView<>();
     historyList = FXCollections.observableArrayList();
 
-    TableColumn<BorrowHistory, Integer> idDocumentCol = new TableColumn<>("ID Sách");
+    TableColumn<BorrowHistory, Integer> idDocumentCol = new TableColumn<>("ID");
     idDocumentCol.setCellValueFactory(new PropertyValueFactory<>("idDocument"));
+    idDocumentCol.setPrefWidth(50);
 
     TableColumn<BorrowHistory, String> titleCol = new TableColumn<>("Tên Sách");
     titleCol.setCellValueFactory(new PropertyValueFactory<>("title"));
+    titleCol.setPrefWidth(530);
 
     TableColumn<BorrowHistory, Date> borrowDateCol = new TableColumn<>("Ngày mượn");
     borrowDateCol.setCellValueFactory(new PropertyValueFactory<>("borrowDate"));
+    borrowDateCol.setPrefWidth(100);
 
     TableColumn<BorrowHistory, Date> returnDateCol = new TableColumn<>("Ngày trả");
     returnDateCol.setCellValueFactory(new PropertyValueFactory<>("returnDate"));
+    returnDateCol.setPrefWidth(100);
 
     TableColumn<BorrowHistory, String> statusCol = new TableColumn<>("Trạng thái");
     statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
+//    statusCol.setPrefWidth(100);
 
     historyTable.getColumns()
         .addAll(idDocumentCol, titleCol, borrowDateCol, returnDateCol, statusCol);
     loadHistoryForBorrower();
+    historyTable.setRowFactory(tv -> new TableRow<BorrowHistory>() {
+      @Override
+      protected void updateItem(BorrowHistory item, boolean empty) {
+        super.updateItem(item, empty);
+        if (item == null) {
+          getStyleClass().removeAll("borrowed", "overdue", "returned");
+          setStyle("");  // Đảm bảo reset style
+        } else {
+          getStyleClass().removeAll("borrowed", "overdue", "returned");
+          getStyleClass().add(item.getStatus());
+        }
+      }
+    });
 
-    // UI để chọn tài liệu
-    selectDocumentButton = new Button("Chọn tài liệu");
-    selectedDocumentLabel = new Label("Chưa chọn tài liệu");
-
-    selectDocumentButton.setOnAction(e -> showDocumentSelectionDialog());
-
-    borrowDateField = new DatePicker();
-    returnDateField = new DatePicker();
-
-    statusField = new ComboBox<>();
-    statusField.getItems().addAll("borrowed", "returned", "overdue");
-
-    // Layout for form
-    HBox formBox = new HBox(10, selectDocumentButton, selectedDocumentLabel, borrowDateField,
-        returnDateField, statusField);
-    formBox.setAlignment(Pos.CENTER);
 
     // Buttons for add, edit, delete
     HBox buttonBox = new HBox(20);
-    Button addButton = new Button("Thêm");
+    Button returnButton = new Button("Trả");
+    returnButton.setPrefWidth(150);
+    returnButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
+
     Button editButton = new Button("Sửa");
+    editButton.setPrefWidth(150);
+    editButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
+
     Button deleteButton = new Button("Xóa");
+    deleteButton.setPrefWidth(150);
+    deleteButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
+
     Button cancelButton = new Button("Thoát");
-    buttonBox.getChildren().addAll(addButton, editButton, deleteButton, cancelButton);
+    cancelButton.setPrefWidth(150);
+    cancelButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
+
+    buttonBox.getChildren().addAll(returnButton, editButton, deleteButton, cancelButton);
     buttonBox.setAlignment(Pos.CENTER);
 
     // Main layout
     VBox layout = new VBox(10);
     layout.setPadding(new Insets(10));
-    layout.getChildren().addAll(historyTable, formBox, buttonBox);
+    layout.getChildren().addAll(historyTable, buttonBox);
 
     // Scene and Stage
     Scene scene = new Scene(layout, 900, 700);
+    scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
     historyStage.setScene(scene);
     historyStage.show();
 
-   //nut them
-    addButton.setOnAction(e -> {
-      addNewHistory();
-      mainInstance.loadDocumentsFromDatabase();
+
+    //Nut tra
+    returnButton.setOnAction(e -> {
+      BorrowHistory selectedHistory = historyTable.getSelectionModel()
+          .getSelectedItem(); // Lấy lịch sử mượn được chọn
+      if (selectedHistory != null) {
+        returnDocument(selectedHistory, selectedBorrowerId);
+      } else {
+        showAlert("Lỗi", "Vui lòng chọn một lịch sử mượn để trả!", Alert.AlertType.ERROR);
+      }
     });
+
     //nut sua
     editButton.setOnAction(e -> {
       BorrowHistory selected = historyTable.getSelectionModel().getSelectedItem();
-      if(selected == null) {
+      if (selected == null) {
         showAlert("Lỗi", "Vui lòng chọn lịch sử để xóa!", AlertType.ERROR);
         return;
       }
-      editHistory(selected,mainInstance);
+      editHistory(selected, mainInstance);
     });
     //nut xoa
     deleteButton.setOnAction(e -> {
       BorrowHistory selected = historyTable.getSelectionModel().getSelectedItem();
-      if(selected == null) {
+      if (selected == null) {
         showAlert("Lỗi", "Vui lòng chọn lịch sử để xóa!", AlertType.ERROR);
         return;
       }
-      deleteHistory(selected,mainInstance);
+      deleteHistory(selected, mainInstance);
     });
     cancelButton.setOnAction(e -> historyStage.close());
+
+
+
   }
 
-  private void showDocumentSelectionDialog() {
-    Stage documentStage = new Stage();
-    documentStage.initModality(Modality.APPLICATION_MODAL);
-    documentStage.setTitle("Chọn tài liệu");
-
-    TableView<Document> documentTable = new TableView<>();
-    ObservableList<Document> documentList = FXCollections.observableArrayList();
-
-    TableColumn<Document, Integer> idCol = new TableColumn<>("ID");
-    idCol.setCellValueFactory(new PropertyValueFactory<>("idDocument"));
-
-    TableColumn<Document, String> titleCol = new TableColumn<>("Tên tài liệu");
-    titleCol.setCellValueFactory(new PropertyValueFactory<>("title"));
-
-    TableColumn<Document, String> authorCol = new TableColumn<>("Tác giả");
-    authorCol.setCellValueFactory(new PropertyValueFactory<>("author"));
-
-    documentTable.getColumns().addAll(idCol, titleCol, authorCol);
-    documentTable.setItems(documentList);
-    loadDocuments(documentList);
-
-    Button selectButton = new Button("Chọn");
-    selectButton.setOnAction(e -> {
-      Document selectedDocument = documentTable.getSelectionModel().getSelectedItem();
-      selectedDocumentId = selectedDocument.getIdDocument();
-      if (selectedDocument != null) {
-        selectedDocumentLabel.setText(
-            "ID Sách: " + selectedDocument.getIdDocument() + " - " + selectedDocument.getTitle());
-        documentStage.close();
-      } else {
-        showAlert("Lỗi", "Vui lòng chọn tài liệu!", AlertType.ERROR);
-      }
-    });
-
-    VBox layout = new VBox(10, documentTable, selectButton);
-    layout.setPadding(new Insets(10));
-    Scene scene = new Scene(layout, 400, 400);
-    documentStage.setScene(scene);
-    documentStage.show();
-  }
 
   /**
    * cap nhat bang lich su tu database
@@ -191,75 +180,65 @@ public class BorrowHistoryDialog extends Stage {
 
       historyTable.setItems(historyList);
 
+
+
+
     } catch (SQLException e) {
       showAlert("Lỗi", "Không thể tải dữ liệu từ database!", AlertType.ERROR);
     }
   }
 
-
-  private void loadDocuments(ObservableList<Document> documentList) {
-    String query = "SELECT idDocument, title, author FROM document";
-    try (Connection connection = new ApiAndDatabase().getConnection();
-        Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery(query)) {
-
-      while (resultSet.next()) {
-        int id = resultSet.getInt("idDocument");
-        String title = resultSet.getString("title");
-        String author = resultSet.getString("author");
-
-        documentList.add(new Document(id, title, author));
-      }
-    } catch (SQLException e) {
-      showAlert("Lỗi", "Không thể tải danh sách tài liệu!", AlertType.ERROR);
-    }
-  }
-
-
   /**
-   * Add new borrow history entry
+   * phuong thuc tra sach
+   *
+   * @param borrowHistory lịch sử trả
+   * @param borrowerId    mã người mượn
    */
-  private void addNewHistory() {
-    if (borrowDateField.getValue() == null || returnDateField.getValue() == null || statusField.getValue() == null) {
-      showAlert("Lỗi", "Vui lòng điền đầy đủ các trường thông tin!", AlertType.ERROR);
+  private void returnDocument(BorrowHistory borrowHistory, int borrowerId) {
+    if (borrowHistory == null) {
+      showAlert("Lỗi", "Không có tài liệu nào được chọn!", Alert.AlertType.ERROR);
+      return;
+    }
+
+    String currentStatus = borrowHistory.getStatus();
+
+    if ("returned".equals(currentStatus)) {
+      showAlert("Thông báo", "Tài liệu này đã được trả trước đó!", Alert.AlertType.INFORMATION);
       return;
     }
 
     try (Connection connection = new ApiAndDatabase().getConnection()) {
-      connection.setAutoCommit(false); // Bắt đầu giao dịch
+      connection.setAutoCommit(false);
 
-      // 1. Thêm dữ liệu mới vào bảng borrow_history
-      String insertQuery = "INSERT INTO borrow_history (idDocument, idBorrower, borrowDate, returnDate, status) VALUES (?, ?, ?, ?, ?)";
-      try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
-        insertStatement.setInt(1, selectedDocumentId);
-        insertStatement.setInt(2, selectedBorrowerId);
-        insertStatement.setDate(3, Date.valueOf(borrowDateField.getValue()));
-        insertStatement.setDate(4, Date.valueOf(returnDateField.getValue()));
-        insertStatement.setString(5, statusField.getValue());
-        insertStatement.executeUpdate();
-      }
+      // Cập nhật trạng thái thành 'returned'
+      String updateStatusQuery = """
+              UPDATE borrow_history
+              SET status = ?, returnDate = ?
+              WHERE idDocument = ? AND idBorrower = ?
+          """;
+      PreparedStatement updateStatusStmt = connection.prepareStatement(updateStatusQuery);
+      updateStatusStmt.setString(1, "returned");
+      updateStatusStmt.setDate(2, Date.valueOf(LocalDate.now())); // Ngày trả là hôm nay
+      updateStatusStmt.setInt(3, borrowHistory.getIdDocument());
+      updateStatusStmt.setInt(4, borrowerId);
+      updateStatusStmt.executeUpdate();
 
-      // 2. Trừ số lượng sách trong bảng document
-      String updateQuery = "UPDATE document SET quantity = quantity - 1 WHERE idDocument = ? AND quantity > 0";
-      try (PreparedStatement updateStatement = connection.prepareStatement(updateQuery)) {
-        updateStatement.setInt(1, selectedDocumentId);
-        int rowsAffected = updateStatement.executeUpdate();
-
-        if (rowsAffected == 0) {
-          // Không có sách để mượn
-          connection.rollback(); // Hoàn tác thay đổi nếu không trừ được số lượng
-          showAlert("Lỗi", "Không còn đủ số lượng sách để mượn!", AlertType.ERROR);
-          return;
-        }
-      }
+      // Tăng số lượng tài liệu trong bảng document
+      String updateQuantityQuery = "UPDATE document SET quantity = quantity + 1 WHERE idDocument = ?";
+      PreparedStatement updateQuantityStmt = connection.prepareStatement(updateQuantityQuery);
+      updateQuantityStmt.setInt(1, borrowHistory.getIdDocument());
+      updateQuantityStmt.executeUpdate();
 
       connection.commit();
-      loadHistoryForBorrower();
-    } catch (SQLException e) {
-      showAlert("Lỗi", "Không thể thêm dữ liệu vào database!", AlertType.ERROR);
+
+      // Load lại dữ liệu và thông báo thành công
+      loadHistoryForBorrower(); // Phương thức load lại danh sách lịch sử
+      mainInstance.loadDocumentsFromDatabase(); // Phương thức load lại danh sách tài liệu
+      showAlert("Thành công", "Tài liệu đã được trả thành công!", Alert.AlertType.INFORMATION);
+    } catch (SQLException ex) {
+      showAlert("Lỗi", "Không thể cập nhật dữ liệu trong cơ sở dữ liệu!", Alert.AlertType.ERROR);
     }
   }
-
 
   /**
    * Edit selected borrow history
@@ -267,7 +246,7 @@ public class BorrowHistoryDialog extends Stage {
   /**
    * Edit selected borrow history with a new window
    */
-  private void editHistory(BorrowHistory borrowHistory,Main mainInstance) {
+  private void editHistory(BorrowHistory borrowHistory, Main mainInstance) {
     Stage editStage = new Stage();
     editStage.initModality(Modality.APPLICATION_MODAL);
     editStage.setTitle("Chỉnh sửa lịch sử mượn");
@@ -328,10 +307,12 @@ public class BorrowHistoryDialog extends Stage {
         if (!oldStatus.equals(newStatus)) {
           String quantityUpdateQuery = null;
 
-          if (oldStatus.equals("returned") && (newStatus.equals("borrowed") || newStatus.equals("overdue"))) {
+          if (oldStatus.equals("returned") && (newStatus.equals("borrowed") || newStatus.equals(
+              "overdue"))) {
             // Decrease quantity when changing from returned to borrowed/overdue
             quantityUpdateQuery = "UPDATE document SET quantity = quantity - 1 WHERE idDocument = ?";
-          } else if ((oldStatus.equals("borrowed") || oldStatus.equals("overdue")) && newStatus.equals("returned")) {
+          } else if ((oldStatus.equals("borrowed") || oldStatus.equals("overdue"))
+              && newStatus.equals("returned")) {
             // Increase quantity when changing from borrowed/overdue to returned
             quantityUpdateQuery = "UPDATE document SET quantity = quantity + 1 WHERE idDocument = ?";
           }
@@ -359,8 +340,6 @@ public class BorrowHistoryDialog extends Stage {
   }
 
 
-
-
   /**
    * Delete selected borrow history
    */
@@ -368,7 +347,8 @@ public class BorrowHistoryDialog extends Stage {
     Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
     confirmAlert.setTitle("Xác nhận xóa");
     confirmAlert.setHeaderText("Bạn có chắc chắn muốn xóa?");
-    confirmAlert.setContentText("ID Sách: " + borrowHistory.getIdDocument() + "\nID Người mượn: " + selectedBorrowerId);
+    confirmAlert.setContentText(
+        "ID Sách: " + borrowHistory.getIdDocument() + "\nID Người mượn: " + selectedBorrowerId);
 
     confirmAlert.showAndWait().ifPresent(response -> {
       if (response == ButtonType.OK) {
@@ -383,7 +363,8 @@ public class BorrowHistoryDialog extends Stage {
           deleteStatement.executeUpdate();
 
           // Handle book quantity if status is returned
-          if (borrowHistory.getStatus().equals("borrowed") || borrowHistory.getStatus().equals("overdue")) {
+          if (borrowHistory.getStatus().equals("borrowed") || borrowHistory.getStatus()
+              .equals("overdue")) {
             String quantityUpdateQuery = "UPDATE document SET quantity = quantity + 1 WHERE idDocument = ?";
             PreparedStatement quantityStatement = connection.prepareStatement(quantityUpdateQuery);
             quantityStatement.setInt(1, borrowHistory.getIdDocument());
