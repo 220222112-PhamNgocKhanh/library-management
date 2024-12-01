@@ -10,5 +10,6 @@ module code.chinhthuc {
   requires javafx.controls;
 
   exports code.chinhthuc;
+  exports thang;
     exports chinhsua;
 }

@@ -1,0 +1,16 @@
+Library Management App
+
+Giới thiệu:
+Chào mừng bạn đến với Library Management App, một ứng dụng đơn giản giúp quản lý tài liệu và sách trong thư viện của bạn một cách hiệu quả. Ứng dụng được thiết kế với các chức năng cơ bản nhằm hỗ trợ bạn trong việc quản lý, cập nhật và theo dõi thông tin tài liệu.
+
+Các tính năng chính:
+1. Thêm tài liệu mới: Cho phép bạn thêm sách hoặc tài liệu mới vào cơ sở dữ liệu với đầy đủ thông tin như tên, tác giả, nhà xuất bản, năm xuất bản, ISBN, và mô tả.
+2. Cập nhật tài liệu: Giúp bạn dễ dàng chỉnh sửa thông tin của các tài liệu đã có.
+3. Xóa tài liệu: Xóa bỏ tài liệu không còn cần thiết khỏi cơ sở dữ liệu.
+4. Tìm kiếm tài liệu: Tìm kiếm nhanh các tài liệu dựa trên tiêu đề, tác giả hoặc các thông tin khác.
+5. Ghi chú cá nhân: Tính năng cho phép bạn lưu trữ các ghi chú cá nhân để theo dõi các hoạt động liên quan đến thư viện.
+
+Lưu ý:
+Ứng dụng này sử dụng cơ sở dữ liệu SQLite để lưu trữ dữ liệu, đảm bảo dễ dàng truy xuất và quản lý. Các thay đổi sẽ được lưu lại tự động.
+
+Cảm ơn bạn đã sử dụng Library Management App. Chúng tôi hy vọng ứng dụng sẽ giúp bạn quản lý thư viện của mình hiệu quả hơn!
