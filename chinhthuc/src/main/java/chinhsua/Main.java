@@ -1,7 +1,6 @@
 package chinhsua;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,8 +15,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -143,10 +140,10 @@ public class Main extends Application {
         + "-fx-border-radius: 15;" // Bo tròn góc cho viền (nếu có)
     );
 
-    Button btnBorrowReturn = new Button("Mượn/Trả tài liệu");
-    btnBorrowReturn.setMinWidth(180);
-    btnBorrowReturn.setMinHeight(100);
-    btnBorrowReturn.setStyle("-fx-background-color: linear-gradient(to right, #FFD700, #FF8C00);"
+    Button remindButton = new Button("Nhắc nhở");
+    remindButton.setMinWidth(180);
+    remindButton.setMinHeight(100);
+    remindButton.setStyle("-fx-background-color: linear-gradient(to right, #FFD700, #FF8C00);"
         + "-fx-font-size: 17px;"
         + "-fx-text-fill: white;" // Màu chữ trắng
         + "-fx-font-weight: bold;" // Chữ in đậm
@@ -155,11 +152,11 @@ public class Main extends Application {
     );
 
     // Thêm các nút vào buttonPanel và dàn đều chúng trong HBox
-    buttonPanel.getChildren().addAll(btnAdd, btnEdit, btnDelete, btnBorrowReturn);
+    buttonPanel.getChildren().addAll(btnAdd, btnEdit, btnDelete, remindButton);
     HBox.setHgrow(btnAdd, Priority.ALWAYS);
     HBox.setHgrow(btnEdit, Priority.ALWAYS);
     HBox.setHgrow(btnDelete, Priority.ALWAYS);
-    HBox.setHgrow(btnBorrowReturn, Priority.ALWAYS);
+    HBox.setHgrow(remindButton, Priority.ALWAYS);
 
     // Tạo bảng hiển thị danh sách tài liệu
     table = new TableView<>();
@@ -312,16 +309,9 @@ public class Main extends Application {
     });
 
     // Xử lý sự kiện nút "Mượn/Trả tài liệu"
-    btnBorrowReturn.setOnAction(e -> {
-      Document selectedDocument = table.getSelectionModel().getSelectedItem();
-      if (selectedDocument != null) {
-        BorrowReturnDialog borrowReturnDialog = new BorrowReturnDialog(primaryStage, documentList,
-            selectedDocument, userList);
-        borrowReturnDialog.showAndWait();
-        updateTable(); // Cập nhật bảng sau khi mượn/trả sách
-      } else {
-        showAlert("Vui lòng chọn tài liệu để mượn/trả!");
-      }
+    remindButton.setOnAction(e -> {
+      OverdueReminder overdueReminder = new OverdueReminder();
+      overdueReminder.sendOverdueReminders();
     });
 
     // Xử lý sự kiện nút "Tìm kiếm"
