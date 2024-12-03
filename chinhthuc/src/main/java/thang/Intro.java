@@ -3,24 +3,25 @@ package thang;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.effect.Blend;
+import javafx.scene.effect.BlendMode;
+import javafx.scene.effect.ColorInput;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class Intro extends Application {
@@ -41,6 +42,9 @@ public class Intro extends Application {
         observableDocumentList = FXCollections.observableArrayList(documentList);
 
         primaryStage.setTitle("Thư viện - Dashboard");
+        // Đặt biểu tượng cho cửa sổ
+        Image icon = new Image(getClass().getResourceAsStream("/logo.png"));
+        primaryStage.getIcons().add(icon);
 
         // Sidebar: Thanh bên trái
         VBox sidebar = createSidebar();
@@ -81,7 +85,6 @@ public class Intro extends Application {
         Button helpButton = new Button("Trợ giúp");
         Button bookButton = new Button("Quản lý sách");
         Button noteButton = new Button("Ghi chú");
-
         Button memberButton = new Button("Thành viên");
 
         for (Button btn : new Button[]{homeButton, bookButton, memberButton, noteButton, helpButton}) {
@@ -93,7 +96,6 @@ public class Intro extends Application {
                 highlightButton(btn); // Highlight nút được nhấn
                 // Gọi phương thức tương ứng
                 if (btn == homeButton) switchToHome();
-                else if (btn == helpButton) new FileHandler().introduce();
                 else if (btn == helpButton) new FileHandler().introduce();
                 else if (btn == bookButton) switchToBookManagement();
                 else if (btn == noteButton) new FileHandler().note();
@@ -122,6 +124,39 @@ public class Intro extends Application {
         // Thêm nút Đăng xuất vào cuối sidebar
         sidebar.getChildren().addAll(spacer, logoutButton);
 
+        // Tạo ImageView cho từng nút chức năng
+        ImageView homeIcon = new ImageView(new Image(getClass().getResourceAsStream("/icon/home.png")));
+        homeIcon.setFitWidth(20);
+        homeIcon.setFitHeight(20);
+
+        ImageView bookIcon = new ImageView(new Image(getClass().getResourceAsStream("/icon/book.png")));
+        bookIcon.setFitWidth(20);
+        bookIcon.setFitHeight(20);
+
+        ImageView memberIcon = new ImageView(new Image(getClass().getResourceAsStream("/icon/member.png")));
+        memberIcon.setFitWidth(20);
+        memberIcon.setFitHeight(20);
+
+        ImageView noteIcon = new ImageView(new Image(getClass().getResourceAsStream("/icon/note.png")));
+        noteIcon.setFitWidth(20);
+        noteIcon.setFitHeight(20);
+
+        ImageView helpIcon = new ImageView(new Image(getClass().getResourceAsStream("/icon/help.png")));
+        helpIcon.setFitWidth(20);
+        helpIcon.setFitHeight(20);
+
+        ImageView logoutIcon = new ImageView(new Image(getClass().getResourceAsStream("/icon/logout.png")));
+        logoutIcon.setFitWidth(20);
+        logoutIcon.setFitHeight(20);
+
+        // Thêm logo vào nút
+        homeButton.setGraphic(homeIcon);
+        bookButton.setGraphic(bookIcon);
+        memberButton.setGraphic(memberIcon);
+        noteButton.setGraphic(noteIcon);
+        helpButton.setGraphic(helpIcon);
+        logoutButton.setGraphic(logoutIcon);
+
         return sidebar;
     }
 
@@ -131,12 +166,29 @@ public class Intro extends Application {
     private void highlightButton(Button button) {
         // Bỏ highlight nút trước đó
         if (selectedButton != null) {
-            selectedButton.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 16px; -fx-alignment: CENTER_LEFT;");
+            selectedButton.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT;");
+            ImageView previousIcon = (ImageView) selectedButton.getGraphic();
+            previousIcon.setEffect(null); // Gỡ bỏ hiệu ứng màu cho icon trước đó
         }
+
+        // Tạo hiệu ứng đổi màu chính xác thành #FF7E5F
+        ImageView currentIcon = (ImageView) button.getGraphic();
+        Blend blendEffect = new Blend();
+        blendEffect.setMode(BlendMode.SRC_ATOP);
+
+        // Áp dụng lớp phủ màu lên icon
+        ColorInput colorInput = new ColorInput(
+                0, 0, // Vị trí
+                currentIcon.getImage().getWidth(), currentIcon.getImage().getHeight(), // Kích thước ảnh
+                Color.web("#FF7E5F") // Màu overlay
+        );
+        blendEffect.setTopInput(colorInput);
+
+        currentIcon.setEffect(blendEffect); // Áp dụng hiệu ứng cho icon
 
         // Highlight nút hiện tại
         button.setStyle("-fx-background-color: #FFFFFF; -fx-text-fill: #FF7E5F; -fx-font-size: 16px; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT;");
-        selectedButton = button; // Cập nhật nút đang được chọn
+        selectedButton = button;
     }
 
     /**
@@ -158,7 +210,7 @@ public class Intro extends Application {
             hiddenStage.setOpacity(0); // Đặt cửa sổ vô hình
 
             // Tạo một đối tượng Main
-            MainTest mainInstance = new MainTest(hiddenStage, userList, observableDocumentList);
+            Main mainInstance = new Main(hiddenStage, userList, observableDocumentList);
 
             // Lấy giao diện chính từ Scene của Main
             Scene mainScene = hiddenStage.getScene();
@@ -182,7 +234,7 @@ public class Intro extends Application {
     private void switchToMemberManagement() {
         try {
             // Tạo một đối tượng MemberManagement
-            borrowerManagementDialog borrowerManagementDialog = new borrowerManagementDialog(MainTest.getMainInstance());
+            borrowerManagementDialog borrowerManagementDialog = new borrowerManagementDialog(Main.getMainInstance());
 
             // Lấy nội dung giao diện từ MemberManagement
             Scene memberScene = borrowerManagementDialog.getScene(); // Lấy scene từ class MemberManagement
@@ -214,7 +266,7 @@ public class Intro extends Application {
 
                 // Tạo và hiển thị lại cửa sổ đăng nhập
                 Stage loginStage = new Stage();
-                //new LoginApp().start(loginStage);
+                new LoginApp().start(loginStage);
             }
         });
     }

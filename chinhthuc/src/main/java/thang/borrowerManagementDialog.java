@@ -35,9 +35,9 @@ public class borrowerManagementDialog extends Stage {
     private TableView<Borrower> leftTable; // Bảng hiển thị danh sách người mượn
     private ObservableList<Borrower> borrowerList;
     TextArea detailArea;
-    MainTest mainInstance;
+    Main mainInstance;
 
-    public borrowerManagementDialog(MainTest mainInstance) {
+    public borrowerManagementDialog(Main mainInstance) {
         this.mainInstance = mainInstance;
         Stage borrowerStage = new Stage();
         borrowerStage.initModality(Modality.APPLICATION_MODAL);
@@ -209,7 +209,7 @@ public class borrowerManagementDialog extends Stage {
             }
             else {
                 borrowDocument(selectedBorrower);
-                mainInstance.loadDocumentsFromDatabase();
+                //mainInstance.loadDocumentsFromDatabase();
             }
         });
         //xử lý chức năng trả sách
@@ -694,7 +694,7 @@ public class borrowerManagementDialog extends Stage {
             }
 
             borrowDocumentForBorrower(borrower, selectedDocument, returnDate); // Gọi hàm mượn tài liệu
-            mainInstance.loadDocumentsFromDatabase();
+            //mainInstance.loadDocumentsFromDatabase();
             borrowStage.close();
         });
 
