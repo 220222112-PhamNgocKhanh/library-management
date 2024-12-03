@@ -59,12 +59,12 @@ public class borrowerManagementDialog extends Stage {
 
         // Bảng bên trái (ID, Tên, Số điện thoại)
         leftTable = new TableView<>();
-        leftTable.setPrefWidth(500);
+        leftTable.setPrefWidth(700);
         leftTable.setEditable(true);
 
         TableColumn<Borrower, String> idBorrowerCol = new TableColumn<>("ID");
         idBorrowerCol.setCellValueFactory(new PropertyValueFactory<>("idBorrower"));
-        idBorrowerCol.setPrefWidth(50);
+        idBorrowerCol.setPrefWidth(40);
 
         TableColumn<Borrower, String> nameCol = new TableColumn<>("Tên");
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -72,7 +72,7 @@ public class borrowerManagementDialog extends Stage {
 
         TableColumn<Borrower, String> phoneCol = new TableColumn<>("Số điện thoại");
         phoneCol.setCellValueFactory(new PropertyValueFactory<>("phone"));
-        phoneCol.setPrefWidth(200);
+        phoneCol.setPrefWidth(150);
 
         leftTable.getColumns().addAll(idBorrowerCol, nameCol, phoneCol);
         loadBorrowerFromDatabase(); // Hàm tải dữ liệu
@@ -80,25 +80,25 @@ public class borrowerManagementDialog extends Stage {
         // Text area bên phải hiển thị thông tin chi tiết
         detailArea = new TextArea();
         detailArea.setEditable(false);
-        detailArea.setPrefWidth(500);
+        detailArea.setPrefWidth(600);
         detailArea.setPromptText("Thông tin chi tiết sẽ hiển thị tại đây...");
 
         // Xử lý khi chọn dòng trong bảng
         leftTable.getSelectionModel().selectedItemProperty()
-                .addListener((obs, oldSelection, newSelection) -> {
-                    if (newSelection != null) {
-                        Borrower selectedBorrower = newSelection;
-                        detailArea.setText(
-                                "ID: " + selectedBorrower.getIdBorrower() + "\n" +
-                                        "Tên: " + selectedBorrower.getName() + "\n" +
-                                        "Giới tính: " + selectedBorrower.getSex() + "\n" +
-                                        "Tuổi: " + selectedBorrower.getAge() + "\n" +
-                                        "Email: " + selectedBorrower.getEmail() + "\n" +
-                                        "Số điện thoại: " + selectedBorrower.getPhone() + "\n" +
-                                        "Địa chỉ: " + selectedBorrower.getAddress()
-                        );
-                    }
-                });
+            .addListener((obs, oldSelection, newSelection) -> {
+                if (newSelection != null) {
+                    Borrower selectedBorrower = newSelection;
+                    detailArea.setText(
+                        "ID: " + selectedBorrower.getIdBorrower() + "\n" +
+                            "Tên: " + selectedBorrower.getName() + "\n" +
+                            "Giới tính: " + selectedBorrower.getSex() + "\n" +
+                            "Tuổi: " + selectedBorrower.getAge() + "\n" +
+                            "Email: " + selectedBorrower.getEmail() + "\n" +
+                            "Số điện thoại: " + selectedBorrower.getPhone() + "\n" +
+                            "Địa chỉ: " + selectedBorrower.getAddress()
+                    );
+                }
+            });
 
         // Bố cục bảng và text area
         HBox tableAndDetail = new HBox(10);
@@ -156,7 +156,7 @@ public class borrowerManagementDialog extends Stage {
         // Scene và Stage
         Scene scene = new Scene(layout, 1000, 600);
         setScene(scene);
-        
+
         //chuc nang kiem tra qua han
         filterButton.setOnAction(e -> {
             filterBorrowersWithOverdueBooks();
@@ -187,7 +187,7 @@ public class borrowerManagementDialog extends Stage {
                 confirmAlert.setTitle("Xác nhận xóa");
                 confirmAlert.setHeaderText("Bạn có chắc chắn muốn xóa?");
                 confirmAlert.setContentText(
-                        "Mã: " + selectedBorrower.getIdBorrower() + "\nTên: " + selectedBorrower.getName()
+                    "Mã: " + selectedBorrower.getIdBorrower() + "\nTên: " + selectedBorrower.getName()
                 );
 
                 confirmAlert.showAndWait().ifPresent(response -> {
@@ -209,7 +209,12 @@ public class borrowerManagementDialog extends Stage {
             }
             else {
                 borrowDocument(selectedBorrower);
-                //mainInstance.loadDocumentsFromDatabase();
+                try{
+                    mainInstance.loadDocumentsFromDatabase();
+                }
+                catch (NullPointerException ex) {
+
+                }
             }
         });
         //xử lý chức năng trả sách
@@ -237,12 +242,12 @@ public class borrowerManagementDialog extends Stage {
             borrowerList.clear();
         }
 
-        ApiToDatabase apiAndDatabase = new ApiToDatabase();
+        ApiAndDatabase apiAndDatabase = new ApiAndDatabase();
         String query = "SELECT * FROM borrower";
 
         try (Connection connection = apiAndDatabase.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            ResultSet resultSet = preparedStatement.executeQuery()) {
 
             while (resultSet.next()) {
                 int idBorrower = resultSet.getInt("idBorrower");
@@ -261,25 +266,25 @@ public class borrowerManagementDialog extends Stage {
 
             if (borrowerList.isEmpty()) {
                 showAlert("Thông báo", "Không có dữ liệu người mượn trong cơ sở dữ liệu.",
-                        AlertType.INFORMATION);
+                    AlertType.INFORMATION);
             }
 
             leftTable.getSelectionModel().selectedItemProperty()
-                    .addListener((observable, oldValue, newValue) -> {
-                        if (newValue != null) {
-                            detailArea.setText(
-                                    "ID: " + newValue.getIdBorrower() + "\n" +
-                                            "Tên: " + newValue.getName() + "\n" +
-                                            "Giới tính: " + newValue.getSex() + "\n" +
-                                            "Tuổi: " + newValue.getAge() + "\n" +
-                                            "Email: " + newValue.getEmail() + "\n" +
-                                            "Số điện thoại: " + newValue.getPhone() + "\n" +
-                                            "Địa chỉ: " + newValue.getAddress()
-                            );
-                        } else {
-                            detailArea.clear(); // Xóa nội dung nếu không có gì được chọn
-                        }
-                    });
+                .addListener((observable, oldValue, newValue) -> {
+                    if (newValue != null) {
+                        detailArea.setText(
+                            "ID: " + newValue.getIdBorrower() + "\n" +
+                                "Tên: " + newValue.getName() + "\n" +
+                                "Giới tính: " + newValue.getSex() + "\n" +
+                                "Tuổi: " + newValue.getAge() + "\n" +
+                                "Email: " + newValue.getEmail() + "\n" +
+                                "Số điện thoại: " + newValue.getPhone() + "\n" +
+                                "Địa chỉ: " + newValue.getAddress()
+                        );
+                    } else {
+                        detailArea.clear(); // Xóa nội dung nếu không có gì được chọn
+                    }
+                });
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -357,6 +362,7 @@ public class borrowerManagementDialog extends Stage {
 
                 // Biểu thức chính quy kiểm tra email
                 String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+                String phoneRegex = "^(0[3|5|7|8|9])[0-9]{8}$";
 
                 if(phone.isEmpty()) {
                     showAlert("Lỗi", "Số điện thoại không được để trống!", AlertType.ERROR);
@@ -398,6 +404,18 @@ public class borrowerManagementDialog extends Stage {
                     showAlert("Lỗi", "Email không đúng định dạng!", AlertType.ERROR);
                     return;
                 }
+                if(!phone.matches(phoneRegex)) {
+                    showAlert("Lỗi", "Số điện thoại không đúng định dạng!",AlertType.ERROR);
+                    return;
+                }
+                if(isEmailExist(email)) {
+                    showAlert("Lỗi", "Email đã tồn tại!", AlertType.ERROR);
+                    return;
+                }
+                if(isPhoneNumberExist(phone)) {
+                    showAlert("Lỗi", "SĐT đã tồn tại!", AlertType.ERROR);
+                    return;
+                }
 
                 Borrower borrower = new Borrower(name, sex, age, email, phone, address);
                 insertNewBorrower(borrower);
@@ -416,17 +434,52 @@ public class borrowerManagementDialog extends Stage {
         loadBorrowerFromDatabase();
     }
 
+    // Kiểm tra số điện thoại đã tồn tại trong cơ sở dữ liệu hay chưa
+    private boolean isPhoneNumberExist(String phoneNumber) {
+        String query = "SELECT COUNT(*) FROM borrower WHERE phone = ?";
+        try (Connection conn = ApiAndDatabase.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, phoneNumber);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; // Trả về true nếu số điện thoại đã tồn tại
+                }
+            }
+        } catch (SQLException e) {
+            showAlert("Lỗi", "Không thể kiểm tra số điện thoại!", AlertType.ERROR);
+        }
+        return false; // Trả về false nếu có lỗi hoặc không tồn tại
+    }
+
+    // Kiểm tra email đã tồn tại trong cơ sở dữ liệu hay chưa
+    private boolean isEmailExist(String email) {
+        String query = "SELECT COUNT(*) FROM borrower WHERE email = ?";
+        try (Connection conn = ApiAndDatabase.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; // Trả về true nếu email đã tồn tại
+                }
+            }
+        } catch (SQLException e) {
+            showAlert("Lỗi", "Không thể kiểm tra email!", AlertType.ERROR);
+        }
+        return false; // Trả về false nếu có lỗi hoặc không tồn tại
+    }
+
+
     /**
      * them nguoi dung vao database
      *
      * @param borrower thong tin ng dung
      */
     private void insertNewBorrower(Borrower borrower) {
-        ApiToDatabase apiAndDatabase = new ApiToDatabase();
+        ApiAndDatabase apiAndDatabase = new ApiAndDatabase();
         try (Connection connection = apiAndDatabase.getConnection();) {
 
             String insertQuery = "INSERT INTO borrower (name, sex, age, email, phone, address) "
-                    + "VALUES (?, ?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?, ?)";
 
             PreparedStatement preparedStatement = connection.prepareStatement(insertQuery);
             preparedStatement.setString(1, borrower.getName());
@@ -509,7 +562,7 @@ public class borrowerManagementDialog extends Stage {
      * @param idBorrower id
      */
     private void saveBorrower(int idBorrower) {
-        try (Connection connection = ApiToDatabase.getConnection()) {
+        try (Connection connection = ApiAndDatabase.getConnection()) {
             String name = nameField.getText().trim();
             String email = emailField.getText().trim();
             String phone = phoneField.getText().trim();
@@ -579,18 +632,36 @@ public class borrowerManagementDialog extends Stage {
      * @param borrower nguoi dung can xoa
      */
     private void deleteBorrower(Borrower borrower) {
-        String query = "DELETE FROM borrower WHERE idBorrower = ?";
-        try (Connection conn = ApiToDatabase.getConnection(); PreparedStatement stmt = conn.prepareStatement(
-                query)) {
-            stmt.setInt(1, borrower.getIdBorrower());
-            int rowsAffected = stmt.executeUpdate();
+        String checkQuery = "SELECT COUNT(*) AS bookCount FROM borrow_history WHERE idBorrower = ? AND status IN ('borrowed', 'overdue')";
+        String deleteQuery = "DELETE FROM borrower WHERE idBorrower = ?";
+
+        try (Connection conn = ApiAndDatabase.getConnection();
+            PreparedStatement checkStmt = conn.prepareStatement(checkQuery);
+            PreparedStatement deleteStmt = conn.prepareStatement(deleteQuery)) {
+
+            // Kiểm tra người mượn còn sách chưa trả hay không
+            checkStmt.setInt(1, borrower.getIdBorrower());
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (rs.next() && rs.getInt("bookCount") > 0) {
+                showAlert("Thông báo", "Người mượn vẫn còn sách chưa trả!", AlertType.WARNING);
+                return; // Dừng việc xóa nếu người mượn còn sách
+            }
+
+            // Thực hiện xóa nếu không còn sách chưa trả
+            deleteStmt.setInt(1, borrower.getIdBorrower());
+            int rowsAffected = deleteStmt.executeUpdate();
+
             if (rowsAffected > 0) {
                 showAlert("Thông báo", "Xóa thành công", AlertType.INFORMATION);
-            } // Trả về true nếu xóa thành công, ngược lại trả về false
+            } else {
+                showAlert("Thông báo", "Không tìm thấy người mượn để xóa", AlertType.WARNING);
+            }
         } catch (SQLException e) {
             showAlert("Lỗi", "Xóa thất bại!", AlertType.ERROR);
         }
     }
+
 
     /**
      * chức năng tìm kiếm
@@ -609,7 +680,7 @@ public class borrowerManagementDialog extends Stage {
 
         for (Borrower borrower : borrowerList) {
             if (borrower.getName().toLowerCase().contains(lowerCaseTerm) ||
-                    borrower.getPhone().contains(lowerCaseTerm)) {
+                borrower.getPhone().contains(lowerCaseTerm)) {
                 filteredList.add(borrower);
             }
         }
@@ -618,7 +689,7 @@ public class borrowerManagementDialog extends Stage {
 
         if (filteredList.isEmpty()) {
             showAlert("Kết quả tìm kiếm", "Không tìm thấy người mượn nào phù hợp.",
-                    AlertType.INFORMATION);
+                AlertType.INFORMATION);
         }
     }
 
@@ -694,7 +765,12 @@ public class borrowerManagementDialog extends Stage {
             }
 
             borrowDocumentForBorrower(borrower, selectedDocument, returnDate); // Gọi hàm mượn tài liệu
-            //mainInstance.loadDocumentsFromDatabase();
+            try{
+                mainInstance.loadDocumentsFromDatabase();
+            }
+            catch (NullPointerException ex){
+
+            }
             borrowStage.close();
         });
 
@@ -714,22 +790,29 @@ public class borrowerManagementDialog extends Stage {
 
     private void borrowDocumentForBorrower(Borrower borrower, Document document, LocalDate returnDate) {
         String checkQuery = "SELECT status FROM borrow_history " +
-                "WHERE idBorrower = ? AND idDocument = ? ORDER BY returnDate DESC LIMIT 1";
+            "WHERE idBorrower = ? AND idDocument = ? ORDER BY returnDate DESC LIMIT 1";
         String updateStatusQuery = "UPDATE borrow_history " +
-                "SET borrowDate = ?, returnDate = ?, status = ? " +
-                "WHERE idBorrower = ? AND idDocument = ? AND status = 'returned'";
+            "SET borrowDate = ?, returnDate = ?, status = ? " +
+            "WHERE idBorrower = ? AND idDocument = ? AND status = 'returned'";
         String insertQuery = "INSERT INTO borrow_history (idBorrower, idDocument, borrowDate, returnDate, status) " +
-                "VALUES (?, ?, ?, ?, ?)";
+            "VALUES (?, ?, ?, ?, ?)";
         String updateDocumentQuantityQuery = "UPDATE document SET quantity = quantity - 1 WHERE idDocument = ?";
         String checkQuantityQuery = "SELECT quantity FROM document WHERE idDocument = ?";
 
         try (
-                Connection conn = ApiToDatabase.getConnection();
-                PreparedStatement checkQuantity = conn.prepareStatement(checkQuantityQuery);
-                PreparedStatement checkStmt = conn.prepareStatement(checkQuery);
-                PreparedStatement updateStatusStmt = conn.prepareStatement(updateStatusQuery);
-                PreparedStatement insertStmt = conn.prepareStatement(insertQuery);
-                PreparedStatement updateQuantityStmt = conn.prepareStatement(updateDocumentQuantityQuery)) {
+            Connection conn = ApiAndDatabase.getConnection();
+            PreparedStatement checkQuantity = conn.prepareStatement(checkQuantityQuery);
+            PreparedStatement checkStmt = conn.prepareStatement(checkQuery);
+            PreparedStatement updateStatusStmt = conn.prepareStatement(updateStatusQuery);
+            PreparedStatement insertStmt = conn.prepareStatement(insertQuery);
+            PreparedStatement updateQuantityStmt = conn.prepareStatement(updateDocumentQuantityQuery)) {
+
+            checkQuantity.setInt(1, document.getIdDocument());
+            ResultSet quantity = checkQuantity.executeQuery();
+            if (quantity.next() && quantity.getInt("quantity") <= 0) {
+                showAlert("Lỗi", "Không đủ sách để mượn!", Alert.AlertType.ERROR);
+                return;
+            }
 
             // Kiểm tra trạng thái mượn gần nhất
             checkStmt.setInt(1, borrower.getIdBorrower());
@@ -749,7 +832,15 @@ public class borrowerManagementDialog extends Stage {
                     // Nếu trạng thái là 'returned', chỉ cập nhật thành 'borrowed'
                     updateStatusStmt.setDate(1, Date.valueOf(LocalDate.now())); // Ngày mượn mới
                     updateStatusStmt.setDate(2, Date.valueOf(returnDate));      // Ngày trả mới
-                    updateStatusStmt.setString(3, "borrowed");
+
+                    // Kiểm tra nếu ngày trả nhỏ hơn ngày hiện tại thì đổi trạng thái thành "overdue"
+                    if (returnDate.isBefore(LocalDate.now())) {
+                        updateStatusStmt.setString(3, "overdue");
+                    } else {
+                        updateStatusStmt.setString(3, "borrowed");
+                    }
+
+
                     updateStatusStmt.setInt(4, borrower.getIdBorrower());
                     updateStatusStmt.setInt(5, document.getIdDocument());
                     updateStatusStmt.executeUpdate();
@@ -764,19 +855,15 @@ public class borrowerManagementDialog extends Stage {
             }
 
             // Kiểm tra số lượng tài liệu còn lại
-            checkQuantity.setInt(1, document.getIdDocument());
-            ResultSet quantity = checkQuantity.executeQuery();
-            if (quantity.next() && quantity.getInt("quantity") <= 0) {
-                showAlert("Lỗi", "Không đủ sách để mượn!", Alert.AlertType.ERROR);
-                return;
-            }
+
 
             // Thêm bản ghi mới vào borrow_history
+            String status = returnDate.isBefore(LocalDate.now()) ? "overdue" : "borrowed"; // Chọn trạng thái "overdue" nếu ngày trả nhỏ hơn ngày hiện tại
             insertStmt.setInt(1, borrower.getIdBorrower());
             insertStmt.setInt(2, document.getIdDocument());
             insertStmt.setDate(3, Date.valueOf(LocalDate.now()));
             insertStmt.setDate(4, Date.valueOf(returnDate));
-            insertStmt.setString(5, "borrowed");
+            insertStmt.setString(5, status);
             insertStmt.executeUpdate();
 
             // Giảm số lượng tài liệu
@@ -791,9 +878,9 @@ public class borrowerManagementDialog extends Stage {
 
     private void loadDocuments(ObservableList<Document> documentList) {
         String query = "SELECT idDocument, title, author FROM document";
-        try (Connection connection = new ApiToDatabase().getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(query)) {
+        try (Connection connection = new ApiAndDatabase().getConnection();
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query)) {
 
             while (resultSet.next()) {
                 int id = resultSet.getInt("idDocument");
@@ -823,8 +910,8 @@ public class borrowerManagementDialog extends Stage {
 
         // Tạo danh sách đã lọc
         ObservableList<Document> filteredList = documentList.filtered(doc ->
-                doc.getTitle().toLowerCase().contains(lowerCaseKeyword) ||
-                        doc.getAuthor().toLowerCase().contains(lowerCaseKeyword)
+            doc.getTitle().toLowerCase().contains(lowerCaseKeyword) ||
+                doc.getAuthor().toLowerCase().contains(lowerCaseKeyword)
         );
 
         documentTable.setItems(filteredList);
@@ -847,9 +934,9 @@ public class borrowerManagementDialog extends Stage {
 
     // Phương thức kiểm tra xem người mượn có sách quá hạn hay không
     private boolean hasOverdueBooks(Borrower borrower) {
-        ApiToDatabase apiAndDatabase = new ApiToDatabase();
+        ApiAndDatabase apiAndDatabase = new ApiAndDatabase();
         // Giả định rằng bạn sẽ truy vấn cơ sở dữ liệu để kiểm tra các bản ghi mượn của người mượn này
-        String query = "SELECT * FROM borrow_history WHERE idBorrower = ? AND returnDate < NOW() AND returnDate IS NOT NULL";
+        String query = "SELECT * FROM borrow_history WHERE idBorrower = ? AND status = 'overdue'";
         try {
             Connection connection = apiAndDatabase.getConnection();
             PreparedStatement stmt = connection.prepareStatement(query);

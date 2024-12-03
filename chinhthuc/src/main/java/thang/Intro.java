@@ -29,6 +29,7 @@ public class Intro extends Application {
     private ObservableList<Document> observableDocumentList;
     private ArrayList<User> userList;
     private ArrayList<Document> documentList;
+    Main mainInstance;
 
     public static void main(String[] args) {
         launch(args);
@@ -234,7 +235,7 @@ public class Intro extends Application {
     private void switchToMemberManagement() {
         try {
             // Tạo một đối tượng MemberManagement
-            borrowerManagementDialog borrowerManagementDialog = new borrowerManagementDialog(Main.getMainInstance());
+            borrowerManagementDialog borrowerManagementDialog = new borrowerManagementDialog(mainInstance);
 
             // Lấy nội dung giao diện từ MemberManagement
             Scene memberScene = borrowerManagementDialog.getScene(); // Lấy scene từ class MemberManagement

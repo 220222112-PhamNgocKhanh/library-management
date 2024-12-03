@@ -12,7 +12,7 @@ import javafx.stage.Stage;
 
 public class LoginApp extends Application {
     private static final String FIXED_USERNAME = "admin";
-    private static final String FIXED_PASSWORD = "admin@123";
+    private static final String FIXED_PASSWORD = "admin";
 
     @Override
     public void start(Stage primaryStage) {

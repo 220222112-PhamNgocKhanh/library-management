@@ -42,12 +42,12 @@ public class User {
 
     // Phương thức để mượn sách
     /**
-    public void borrowBook(Document book) {
-        if (!borrowedBooks.contains(book)) {
-            borrowedBooks.add(book);  // Thêm sách vào danh sách mượn
-            book.setQuantity(book.getQuantity() - 1);  // Giảm số lượng sách
-        }
-    }
+     public void borrowBook(Document book) {
+     if (!borrowedBooks.contains(book)) {
+     borrowedBooks.add(book);  // Thêm sách vào danh sách mượn
+     book.setQuantity(book.getQuantity() - 1);  // Giảm số lượng sách
+     }
+     }
      */
     public void borrowBook(Document book) {
         if (!borrowedBooks.contains(book)) {
@@ -57,12 +57,12 @@ public class User {
 
     // Phương thức để trả sách
     /**
-    public void returnBook(Document book) {
-        if (borrowedBooks.contains(book)) {
-            borrowedBooks.remove(book);  // Xóa sách khỏi danh sách mượn
-            book.setQuantity(book.getQuantity() + 1);  // Tăng số lượng sách trở lại
-        }
-    }
+     public void returnBook(Document book) {
+     if (borrowedBooks.contains(book)) {
+     borrowedBooks.remove(book);  // Xóa sách khỏi danh sách mượn
+     book.setQuantity(book.getQuantity() + 1);  // Tăng số lượng sách trở lại
+     }
+     }
      */
     public void returnBook(Document book) {
         borrowedBooks.remove(book);

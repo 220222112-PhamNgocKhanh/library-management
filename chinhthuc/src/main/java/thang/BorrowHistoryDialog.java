@@ -62,7 +62,7 @@ public class BorrowHistoryDialog extends Stage {
 //    statusCol.setPrefWidth(100);
 
         historyTable.getColumns()
-                .addAll(idDocumentCol, titleCol, borrowDateCol, returnDateCol, statusCol);
+            .addAll(idDocumentCol, titleCol, borrowDateCol, returnDateCol, statusCol);
         loadHistoryForBorrower();
         historyTable.setRowFactory(tv -> new TableRow<BorrowHistory>() {
             @Override
@@ -107,6 +107,7 @@ public class BorrowHistoryDialog extends Stage {
 
         // Scene and Stage
         Scene scene = new Scene(layout, 900, 700);
+        scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         historyStage.setScene(scene);
         historyStage.show();
 
@@ -114,7 +115,7 @@ public class BorrowHistoryDialog extends Stage {
         //Nut tra
         returnButton.setOnAction(e -> {
             BorrowHistory selectedHistory = historyTable.getSelectionModel()
-                    .getSelectedItem(); // Lấy lịch sử mượn được chọn
+                .getSelectedItem(); // Lấy lịch sử mượn được chọn
             if (selectedHistory != null) {
                 returnDocument(selectedHistory, selectedBorrowerId);
             } else {
@@ -126,10 +127,16 @@ public class BorrowHistoryDialog extends Stage {
         editButton.setOnAction(e -> {
             BorrowHistory selected = historyTable.getSelectionModel().getSelectedItem();
             if (selected == null) {
-                showAlert("Lỗi", "Vui lòng chọn lịch sử để xóa!", AlertType.ERROR);
+                showAlert("Lỗi", "Vui lòng chọn lịch sử để sửa!", AlertType.ERROR);
                 return;
             }
-            editHistory(selected, mainInstance);
+            editHistory(selected);
+            try{
+                mainInstance.loadDocumentsFromDatabase();
+            }
+            catch (NullPointerException ex){
+
+            }
         });
         //nut xoa
         deleteButton.setOnAction(e -> {
@@ -138,7 +145,13 @@ public class BorrowHistoryDialog extends Stage {
                 showAlert("Lỗi", "Vui lòng chọn lịch sử để xóa!", AlertType.ERROR);
                 return;
             }
-            deleteHistory(selected, mainInstance);
+            deleteHistory(selected);
+            try{
+                mainInstance.loadDocumentsFromDatabase();
+            }
+            catch (NullPointerException ex){
+
+            }
         });
         cancelButton.setOnAction(e -> historyStage.close());
 
@@ -159,8 +172,8 @@ public class BorrowHistoryDialog extends Stage {
             WHERE bh.idBorrower = ?
         """;
 
-        try (Connection connection = new ApiToDatabase().getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+        try (Connection connection = new ApiAndDatabase().getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setInt(1, selectedBorrowerId);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -173,7 +186,7 @@ public class BorrowHistoryDialog extends Stage {
                 String status = resultSet.getString("status");
 
                 BorrowHistory history = new BorrowHistory(idDocument, title, borrowDate, returnDate,
-                        status);
+                    status);
                 historyList.add(history);
             }
 
@@ -206,7 +219,7 @@ public class BorrowHistoryDialog extends Stage {
             return;
         }
 
-        try (Connection connection = new ApiToDatabase().getConnection()) {
+        try (Connection connection = new ApiAndDatabase().getConnection()) {
             connection.setAutoCommit(false);
 
             // Cập nhật trạng thái thành 'returned'
@@ -237,6 +250,9 @@ public class BorrowHistoryDialog extends Stage {
         } catch (SQLException ex) {
             showAlert("Lỗi", "Không thể cập nhật dữ liệu trong cơ sở dữ liệu!", Alert.AlertType.ERROR);
         }
+        catch (NullPointerException ex) {
+
+        }
     }
 
     /**
@@ -245,16 +261,16 @@ public class BorrowHistoryDialog extends Stage {
     /**
      * Edit selected borrow history with a new window
      */
-    private void editHistory(BorrowHistory borrowHistory, Main mainInstance) {
+    private void editHistory(BorrowHistory borrowHistory) {
         Stage editStage = new Stage();
         editStage.initModality(Modality.APPLICATION_MODAL);
         editStage.setTitle("Chỉnh sửa lịch sử mượn");
 
         // Fields for editing
         DatePicker editBorrowDateField = new DatePicker(
-                borrowHistory.getBorrowDate().toLocalDate());
+            borrowHistory.getBorrowDate().toLocalDate());
         DatePicker editReturnDateField = new DatePicker(
-                borrowHistory.getReturnDate().toLocalDate());
+            borrowHistory.getReturnDate().toLocalDate());
         ComboBox<String> editStatusField = new ComboBox<>();
         editStatusField.getItems().addAll("borrowed", "returned", "overdue");
         editStatusField.setValue(borrowHistory.getStatus());
@@ -263,9 +279,9 @@ public class BorrowHistoryDialog extends Stage {
         VBox editForm = new VBox(10);
         editForm.setPadding(new Insets(10));
         editForm.getChildren().addAll(
-                new Label("Ngày mượn:"), editBorrowDateField,
-                new Label("Ngày trả:"), editReturnDateField,
-                new Label("Trạng thái:"), editStatusField
+            new Label("Ngày mượn:"), editBorrowDateField,
+            new Label("Ngày trả:"), editReturnDateField,
+            new Label("Trạng thái:"), editStatusField
         );
 
         // Buttons for save and cancel
@@ -282,37 +298,44 @@ public class BorrowHistoryDialog extends Stage {
 
         // Handle save action
         saveButton.setOnAction(e -> {
-            try (Connection connection = new ApiToDatabase().getConnection()) {
+            try (Connection connection = new ApiAndDatabase().getConnection()) {
                 connection.setAutoCommit(false);
 
                 String oldStatus = borrowHistory.getStatus();
                 String newStatus = editStatusField.getValue();
+                LocalDate editedBorrowDate = editBorrowDateField.getValue();
+                LocalDate currentDate = LocalDate.now();
 
-                // Update the borrow history
+                // Kiểm tra nếu ngày mượn chỉnh sửa xuống dưới ngày hiện tại, cập nhật trạng thái thành "overdue"
+                if (editedBorrowDate.isBefore(currentDate)) {
+                    newStatus = "overdue";  // Cập nhật trạng thái thành "overdue"
+                    editStatusField.setValue(newStatus);  // Cập nhật giá trị ComboBox
+                }
+
+                // Cập nhật lịch sử mượn
                 String query = """
-                UPDATE borrow_history 
-                SET borrowDate = ?, returnDate = ?, status = ? 
-                WHERE idDocument = ? AND idBorrower = ?
-            """;
+        UPDATE borrow_history 
+        SET borrowDate = ?, returnDate = ?, status = ? 
+        WHERE idDocument = ? AND idBorrower = ?
+        """;
                 PreparedStatement preparedStatement = connection.prepareStatement(query);
-                preparedStatement.setDate(1, Date.valueOf(editBorrowDateField.getValue()));
+                preparedStatement.setDate(1, Date.valueOf(editedBorrowDate));
                 preparedStatement.setDate(2, Date.valueOf(editReturnDateField.getValue()));
                 preparedStatement.setString(3, newStatus);
                 preparedStatement.setInt(4, borrowHistory.getIdDocument());
                 preparedStatement.setInt(5, selectedBorrowerId);
                 preparedStatement.executeUpdate();
 
-                // Handle book quantity based on status change
+                // Xử lý số lượng sách dựa trên thay đổi trạng thái
                 if (!oldStatus.equals(newStatus)) {
                     String quantityUpdateQuery = null;
 
-                    if (oldStatus.equals("returned") && (newStatus.equals("borrowed") || newStatus.equals(
-                            "overdue"))) {
-                        // Decrease quantity when changing from returned to borrowed/overdue
+                    if (oldStatus.equals("returned") && (newStatus.equals("borrowed") || newStatus.equals("overdue"))) {
+                        // Giảm số lượng khi thay đổi từ "returned" sang "borrowed" hoặc "overdue"
                         quantityUpdateQuery = "UPDATE document SET quantity = quantity - 1 WHERE idDocument = ?";
                     } else if ((oldStatus.equals("borrowed") || oldStatus.equals("overdue"))
-                            && newStatus.equals("returned")) {
-                        // Increase quantity when changing from borrowed/overdue to returned
+                        && newStatus.equals("returned")) {
+                        // Tăng số lượng khi thay đổi từ "borrowed" hoặc "overdue" sang "returned"
                         quantityUpdateQuery = "UPDATE document SET quantity = quantity + 1 WHERE idDocument = ?";
                     }
 
@@ -326,14 +349,12 @@ public class BorrowHistoryDialog extends Stage {
                 connection.commit();
                 loadHistoryForBorrower();
                 showAlert("Thành công", "Chỉnh sửa thành công!", AlertType.INFORMATION);
-                mainInstance.loadDocumentsFromDatabase();
                 editStage.close();
             } catch (SQLException ex) {
                 showAlert("Lỗi", "Không thể sửa dữ liệu trong database!", AlertType.ERROR);
-            } catch (NullPointerException ex) {
-                showAlert("Lỗi", "Vui lòng điền đầy đủ thông tin!", AlertType.ERROR);
             }
         });
+
 
         cancelButton.setOnAction(e -> editStage.close());
     }
@@ -342,16 +363,28 @@ public class BorrowHistoryDialog extends Stage {
     /**
      * Delete selected borrow history
      */
-    private void deleteHistory(BorrowHistory borrowHistory, Main mainInstance) {
+    /**
+     * Delete selected borrow history
+     */
+    private void deleteHistory(BorrowHistory borrowHistory) {
+        // Kiểm tra trạng thái của lịch sử mượn
+        if (borrowHistory.getStatus().equals("borrowed") || borrowHistory.getStatus().equals("overdue")) {
+            showAlert("Cảnh báo",
+                "Không thể xóa lịch sử mượn khi sách vẫn ở trạng thái 'borrowed' hoặc 'overdue'.\n" +
+                    "Vui lòng chỉnh trạng thái về 'returned' trước khi xóa.",
+                Alert.AlertType.WARNING);
+            return;
+        }
+
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Xác nhận xóa");
         confirmAlert.setHeaderText("Bạn có chắc chắn muốn xóa?");
         confirmAlert.setContentText(
-                "ID Sách: " + borrowHistory.getIdDocument() + "\nID Người mượn: " + selectedBorrowerId);
+            "ID Sách: " + borrowHistory.getIdDocument() + "\nID Người mượn: " + selectedBorrowerId);
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                try (Connection connection = new ApiToDatabase().getConnection()) {
+                try (Connection connection = new ApiAndDatabase().getConnection()) {
                     connection.setAutoCommit(false);
 
                     // Delete the borrow history
@@ -361,25 +394,16 @@ public class BorrowHistoryDialog extends Stage {
                     deleteStatement.setInt(2, selectedBorrowerId);
                     deleteStatement.executeUpdate();
 
-                    // Handle book quantity if status is returned
-                    if (borrowHistory.getStatus().equals("borrowed") || borrowHistory.getStatus()
-                            .equals("overdue")) {
-                        String quantityUpdateQuery = "UPDATE document SET quantity = quantity + 1 WHERE idDocument = ?";
-                        PreparedStatement quantityStatement = connection.prepareStatement(quantityUpdateQuery);
-                        quantityStatement.setInt(1, borrowHistory.getIdDocument());
-                        quantityStatement.executeUpdate();
-                    }
-
                     connection.commit();
                     loadHistoryForBorrower();
-                    showAlert("Thành công", "Xóa lịch sử mượn thành công!", AlertType.INFORMATION);
-                    mainInstance.loadDocumentsFromDatabase();
+                    showAlert("Thành công", "Xóa lịch sử mượn thành công!", Alert.AlertType.INFORMATION);
                 } catch (SQLException e) {
-                    showAlert("Lỗi", "Không thể xóa dữ liệu trong database!", AlertType.ERROR);
+                    showAlert("Lỗi", "Không thể xóa dữ liệu trong database!", Alert.AlertType.ERROR);
                 }
             }
         });
     }
+
 
 
     /**

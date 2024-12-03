@@ -65,7 +65,8 @@ public class Borrower {
     public Borrower() {
 
     }
-    public Borrower(String name, String sex, int age, String email, String phone,String address) {
+
+    public Borrower(String name, String sex, int age, String email, String phone, String address) {
         this.address = address;
         this.name = name;
         this.age = age;
@@ -73,7 +74,9 @@ public class Borrower {
         this.phone = phone;
         this.sex = sex;
     }
-    public Borrower(int idBorrower,String name, String sex, int age, String email, String phone,String address) {
+
+    public Borrower(int idBorrower, String name, String sex, int age, String email, String phone,
+        String address) {
         this.idBorrower = idBorrower;
         this.address = address;
         this.name = name;
@@ -83,5 +86,12 @@ public class Borrower {
         this.sex = sex;
     }
 
+    public Borrower(int idBorrower, String name, String email) {
+        this.idBorrower = idBorrower;
+        this.name = name;
+        this.email = email;
+    }
+
 
 }
+

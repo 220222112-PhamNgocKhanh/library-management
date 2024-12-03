@@ -41,9 +41,6 @@ public class AddDocumentDialog extends Stage {
     private ArrayList<Document> documentList;
     private Main mainInstance; // Đối tượng Main để gọi hàm updateTable()
 
-    private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/library";
-    private static final String DB_USERNAME = "root";
-    private static final String DB_PASSWORD = "08092004";
 
     public AddDocumentDialog(Stage parent, ArrayList<Document> documentList, Main mainInstance) {
         /* this.documentList = documentList;
@@ -68,26 +65,31 @@ public class AddDocumentDialog extends Stage {
         // Trường nhập ISBN 10
         grid.add(new Label("ISBN 10:"), 0, 1);
         isbn10Field = new TextField();
+        isbn10Field.getStyleClass().add("text-field");
         grid.add(isbn10Field, 1, 1);
 
         // Trường nhập ISBN 13
         grid.add(new Label("ISBN 13:"), 0, 2);
         isbn13Field = new TextField();
+        isbn13Field.getStyleClass().add("text-field");
         grid.add(isbn13Field, 1, 2);
 
         // Trường nhập tên tài liệu
         grid.add(new Label("Tên tài liệu:"), 0, 3);
         titleField = new TextField();
+        titleField.getStyleClass().add("text-field");
         grid.add(titleField, 1, 3);
 
         // Trường nhập tác giả
         grid.add(new Label("Tác giả:"), 0, 4);
         authorField = new TextField();
+        authorField.getStyleClass().add("text-field");
         grid.add(authorField, 1, 4);
 
         // Trường nhập thể loại
         grid.add(new Label("Thể loại:"), 0, 5);
         categoryField = new TextField();
+        categoryField.getStyleClass().add("text-field");
         grid.add(categoryField, 1, 5);
 
         // ComboBox chọn trạng thái
@@ -144,6 +146,7 @@ public class AddDocumentDialog extends Stage {
 
         // Tạo và hiển thị Scene
         Scene scene = new Scene(root);
+        scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         setScene(scene);
         setResizable(false);
         sizeToScene();
@@ -400,8 +403,8 @@ public class AddDocumentDialog extends Stage {
                 return;
             }
             Document document = new Document(title, author, category, status, quantity, publisher,
-                    publishedDate, description, isbn13, isbn10);
-            try (Connection connection = ApiToDatabase.getConnection()) {
+                publishedDate, description, isbn13, isbn10);
+            try (Connection connection = ApiAndDatabase.getConnection()) {
                 // Tìm kiếm các tài liệu trùng tên
                 String query = "SELECT * FROM document WHERE title = ?";
                 try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
@@ -428,7 +431,7 @@ public class AddDocumentDialog extends Stage {
 
     //hiển thị danh sách những tài liệu trùng tên lên một cửa sổ khác và những trường xử lý
     private void showDuplicateDocuments(ResultSet resultSet, Connection connection, Document document)
-            throws SQLException {
+        throws SQLException {
         Stage duplicateStage = new Stage();
         duplicateStage.initModality(Modality.APPLICATION_MODAL);
         duplicateStage.setTitle("Tài liệu trùng tên");
@@ -480,11 +483,14 @@ public class AddDocumentDialog extends Stage {
             try {
                 duplicateStage.close();
                 insertNewDocument(connection, document);
+                mainInstance.loadDocumentsFromDatabase();
             } catch (SQLException ex) {
                 showAlert("Lỗi", "Không thể thêm tài liệu mới.", Alert.AlertType.ERROR);
                 ex.printStackTrace();
             }
-            mainInstance.loadDocumentsFromDatabase();
+            catch (NullPointerException ex){
+
+            }
         });
 
         // Nút "Chỉnh sửa"
@@ -497,14 +503,19 @@ public class AddDocumentDialog extends Stage {
             }
             duplicateStage.close();
             updateDocumentInDatabase(document,selectedDoc.getIdDocument());
-            mainInstance.loadDocumentsFromDatabase();
+            try{
+                mainInstance.loadDocumentsFromDatabase();
+            }
+            catch (NullPointerException ex) {
+
+            }
         });
 
         Button closeButton = new Button("Hủy");
         closeButton.setOnAction(e -> duplicateStage.close());
 
         VBox layout = new VBox(10, new Label("Danh sách tài liệu trùng tên:"), tableView,
-                addNewButton, editButton, closeButton);
+            addNewButton, editButton, closeButton);
         layout.setPadding(new Insets(10));
         Scene scene = new Scene(layout, 800, 600);
         duplicateStage.setScene(scene);
@@ -514,8 +525,8 @@ public class AddDocumentDialog extends Stage {
     //thêm mới tài liệu
     private void insertNewDocument(Connection connection, Document document) throws SQLException {
         String insertQuery =
-                "INSERT INTO document (title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10) "
-                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "INSERT INTO document (title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
             preparedStatement.setString(1, document.getTitle());
             preparedStatement.setString(2, document.getAuthor());
@@ -540,11 +551,11 @@ public class AddDocumentDialog extends Stage {
 
 
         String updateQuery = "UPDATE document SET title = ?, author = ?, category = ?, status = ?, " +
-                "quantity = ?, publisher = ?, publishedDate = ?, description = ?, " +
-                "isbn13 = ?, isbn10 = ? WHERE idDocument = ?";
+            "quantity = ?, publisher = ?, publishedDate = ?, description = ?, " +
+            "isbn13 = ?, isbn10 = ? WHERE idDocument = ?";
 
-        try (Connection connection = ApiToDatabase.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+        try (Connection connection = ApiAndDatabase.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 
             // Gán giá trị cho các tham số
             preparedStatement.setString(1, document.getTitle());

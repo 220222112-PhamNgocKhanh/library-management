@@ -29,7 +29,7 @@ public class Document {
 
     // Constructor mở rộng để khởi tạo với dữ liệu từ API
     public Document(String title, String author, String category, String status, int quantity,
-                    String publisher, String publishedDate, String description, String isbn13, String isbn10) {
+        String publisher, String publishedDate, String description, String isbn13, String isbn10) {
         this.title = title;
         this.author = author;
         this.category = category;
@@ -53,7 +53,7 @@ public class Document {
     }
 
     public Document(int idDocument,String title, String author, String category, String status, int quantity,
-                    String publisher, String publishedDate, String description, String isbn13, String isbn10) {
+        String publisher, String publishedDate, String description, String isbn13, String isbn10) {
         this.title = title;
         this.author = author;
         this.category = category;
@@ -174,6 +174,6 @@ public class Document {
     @Override
     public String toString() {
         return String.format("id: %d\nTitle: %s\nAuthor: %s\nCategory: %s\nStatus: %s\nQuantity: %d\nPublisher: %s\nPublished Date: %s\nDescription: %s\nISBN-13: %s\nISBN-10: %s",
-                idDocument,title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10);
+            idDocument,title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10);
     }
 }

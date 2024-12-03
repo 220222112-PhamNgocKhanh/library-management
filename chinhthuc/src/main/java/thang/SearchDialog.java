@@ -69,8 +69,8 @@ public class SearchDialog extends Stage {
 
             // Kiểm tra từ khóa trong cả tên sách và ISBN
             if (doc.getTitle().toLowerCase().contains(searchTerm.toLowerCase()) ||
-                    doc.getIsbn13().equalsIgnoreCase(searchTerm) ||
-                    doc.getIsbn10().equalsIgnoreCase(searchTerm)) {
+                doc.getIsbn13().equalsIgnoreCase(searchTerm) ||
+                doc.getIsbn10().equalsIgnoreCase(searchTerm)) {
 
                 // Chọn và highlight dòng chứa tài liệu
                 table.getSelectionModel().clearAndSelect(i); // Chọn dòng chứa tài liệu và bỏ chọn các dòng khác

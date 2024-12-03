@@ -7,8 +7,8 @@ import java.sql.SQLException;
 public class DeleteDocument {
     public boolean deleteDocument(int idDocument) {
         String query = "DELETE FROM document WHERE idDocument = ?";
-        try (Connection conn = ApiToDatabase.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = ApiAndDatabase.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, idDocument);
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0; // Trả về true nếu xóa thành công, ngược lại trả về false

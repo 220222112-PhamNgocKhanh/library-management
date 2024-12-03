@@ -1,5 +1,6 @@
 package thang;
 
+import chinhsua.OverdueReminder;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -26,32 +27,36 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Main {
+public class Main  {
+
     private TableView<Document> table;
     private TextArea bookInfoArea;
     private TextField searchField;
     private ArrayList<Document> documentList;
     private ArrayList<User> userList;
     private ObservableList<Document> observableDocumentList;
-    private static Main instance;
 
     // Constructor nhận các tham số truyền vào
-    public Main(Stage primaryStage, ArrayList<User> userList, ObservableList<Document> observableDocumentList) {
+    public Main(Stage primaryStage, ArrayList<User> userList,
+        ObservableList<Document> observableDocumentList) {
         this.userList = userList;
         this.observableDocumentList = observableDocumentList;
-        this.documentList = new ArrayList<>(observableDocumentList); // Đồng bộ dữ liệu từ observableDocumentList
+        this.documentList = new ArrayList<>(
+            observableDocumentList); // Đồng bộ dữ liệu từ observableDocumentList
 
         // Gọi phương thức để tải tài liệu từ API khi khởi chạy
-        ApiToDatabase apiToDatabase = new ApiToDatabase();
-        apiToDatabase.loadDocumentsFromAPI();
-        loadDocumentsFromDatabase();
+        new Thread(() -> {
+            ApiAndDatabase apiAndDatabase = new ApiAndDatabase();
+            apiAndDatabase.loadDocumentsFromAPI();
+            loadDocumentsFromDatabase();
+        }).start();
 
         // Thiết lập giao diện
         setupUI(primaryStage);
     }
 
-    public static Main getMainInstance() {
-        return instance;
+    public Main getMainInstance() {
+        return this;
     }
 
     // Tạo giao diện
@@ -82,6 +87,7 @@ public class Main {
 
         // Tạo Scene và gắn vào Stage
         Scene scene = new Scene(root, 800, 600);
+        scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
     }
@@ -98,7 +104,8 @@ public class Main {
         searchField.setStyle("-fx-background-radius: 15;");
 
         Button searchButton = new Button("Search");
-        searchButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #00FFD1, #0099FF);"
+        searchButton.setStyle(
+            "-fx-background-color: linear-gradient(to bottom right, #00FFD1, #0099FF);"
                 + "-fx-font-size: 11px;"
                 + "-fx-text-fill: white;"
                 + "-fx-font-weight: bold;"
@@ -110,10 +117,10 @@ public class Main {
             if (!searchTerm.isEmpty()) {
                 // Lọc danh sách tài liệu theo từ khóa
                 List<Document> filteredDocuments = documentList.stream()
-                        .filter(doc -> doc.getTitle().toLowerCase().contains(searchTerm) ||
-                                doc.getAuthor().toLowerCase().contains(searchTerm) ||
-                                doc.getCategory().toLowerCase().contains(searchTerm))
-                        .collect(Collectors.toList());
+                    .filter(doc -> doc.getTitle().toLowerCase().contains(searchTerm) ||
+                        doc.getAuthor().toLowerCase().contains(searchTerm) ||
+                        doc.getCategory().toLowerCase().contains(searchTerm))
+                    .collect(Collectors.toList());
 
                 // Cập nhật bảng với danh sách đã lọc
                 table.getItems().setAll(filteredDocuments);
@@ -129,17 +136,18 @@ public class Main {
             if (!searchTerm.isEmpty()) {
                 // Lọc danh sách tài liệu theo từ khóa
                 List<Document> filteredDocuments = documentList.stream()
-                        .filter(doc -> doc.getTitle().toLowerCase().contains(searchTerm) ||
-                                doc.getAuthor().toLowerCase().contains(searchTerm) ||
-                                doc.getCategory().toLowerCase().contains(searchTerm))
-                        .collect(Collectors.toList());
+                    .filter(doc -> doc.getTitle().toLowerCase().contains(searchTerm) ||
+                        doc.getAuthor().toLowerCase().contains(searchTerm) ||
+                        doc.getCategory().toLowerCase().contains(searchTerm))
+                    .collect(Collectors.toList());
 
                 // Kiểm tra kết quả và cập nhật bảng
                 if (!filteredDocuments.isEmpty()) {
                     table.getItems().setAll(filteredDocuments);
                 } else {
                     showAlert("Không tìm thấy tài liệu nào phù hợp với từ khóa!");
-                    table.getItems().setAll(documentList); // Hiển thị lại toàn bộ danh sách nếu không có kết quả
+                    table.getItems()
+                        .setAll(documentList); // Hiển thị lại toàn bộ danh sách nếu không có kết quả
                 }
             } else {
                 showAlert("Vui lòng nhập từ khóa tìm kiếm!");
@@ -162,10 +170,10 @@ public class Main {
         btnAdd.setMinWidth(180);
         btnAdd.setMinHeight(100);
         btnAdd.setStyle("-fx-background-color: linear-gradient(to right, #8A2BE2, #00BFFF);"
-                + "-fx-font-size: 17px;"
-                + "-fx-text-fill: white;"
-                + "-fx-font-weight: bold;"
-                + "-fx-background-radius: 15;");
+            + "-fx-font-size: 17px;"
+            + "-fx-text-fill: white;"
+            + "-fx-font-weight: bold;"
+            + "-fx-background-radius: 15;");
         btnAdd.setOnAction(e -> openAddDocumentDialog(primaryStage));
 
         // Nút Sửa
@@ -173,10 +181,10 @@ public class Main {
         btnEdit.setMinWidth(180);
         btnEdit.setMinHeight(100);
         btnEdit.setStyle("-fx-background-color: linear-gradient(to right, #0000FF, #FF00FF);"
-                + "-fx-font-size: 17px;"
-                + "-fx-text-fill: white;"
-                + "-fx-font-weight: bold;"
-                + "-fx-background-radius: 15;");
+            + "-fx-font-size: 17px;"
+            + "-fx-text-fill: white;"
+            + "-fx-font-weight: bold;"
+            + "-fx-background-radius: 15;");
         btnEdit.setOnAction(e -> openEditDocumentDialog(primaryStage));
 
         // Nút Xóa
@@ -184,10 +192,23 @@ public class Main {
         btnDelete.setMinWidth(180);
         btnDelete.setMinHeight(100);
         btnDelete.setStyle("-fx-background-color: linear-gradient(to right, #FF4500, #FFA07A);"
-                + "-fx-font-size: 17px;"
-                + "-fx-text-fill: white;"
-                + "-fx-font-weight: bold;"
-                + "-fx-background-radius: 15;");
+            + "-fx-font-size: 17px;"
+            + "-fx-text-fill: white;"
+            + "-fx-font-weight: bold;"
+            + "-fx-background-radius: 15;");
+
+        // Nut nhac nho
+        Button remindButton = new Button("Nhắc nhở");
+        remindButton.setMinWidth(180);
+        remindButton.setMinHeight(100);
+        remindButton.setStyle("-fx-background-color: linear-gradient(to right, #FFD700, #FF8C00);"
+            + "-fx-font-size: 17px;"
+            + "-fx-text-fill: white;"
+            + "-fx-font-weight: bold;"
+            + "-fx-background-radius: 15;"
+            + "-fx-border-radius: 15;"
+        );
+
 
         // Xử lý sự kiện nút "Xóa tài liệu"
         btnDelete.setOnAction(e -> {
@@ -201,7 +222,7 @@ public class Main {
                 confirmAlert.setTitle("Xác nhận xóa");
                 confirmAlert.setHeaderText("Bạn có chắc chắn muốn xóa tài liệu này?");
                 confirmAlert.setContentText(
-                        "Mã:" + selectedDocument.getIdDocument() + "\nTên: " + selectedDocument.getTitle());
+                    "Mã:" + selectedDocument.getIdDocument() + "\nTên: " + selectedDocument.getTitle());
 
                 // Xử lý kết quả xác nhận
                 confirmAlert.showAndWait().ifPresent(response -> {
@@ -238,9 +259,15 @@ public class Main {
             }
         });
 
-        buttonPanel.getChildren().addAll(btnAdd, btnEdit, btnDelete);
+        remindButton.setOnAction(e -> {
+            chinhsua.OverdueReminder overdueReminder = new OverdueReminder();
+            overdueReminder.sendOverdueReminders();
+        });
+
+        buttonPanel.getChildren().addAll(btnAdd, btnEdit, btnDelete, remindButton);
         return buttonPanel;
     }
+
 
     // Tạo bảng hiển thị danh sách tài liệu
     private void createTable() {
@@ -264,11 +291,12 @@ public class Main {
         table.getColumns().addAll(titleColumn, statusColumn, quantityColumn);
         table.setItems(observableDocumentList);
 
-        table.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                showBookInfo(newValue);
-            }
-        });
+        table.getSelectionModel().selectedItemProperty()
+            .addListener((observable, oldValue, newValue) -> {
+                if (newValue != null) {
+                    showBookInfo(newValue);
+                }
+            });
     }
 
     // Tạo khu vực thông tin chi tiết
@@ -280,13 +308,13 @@ public class Main {
         infoPanel.setPrefWidth(300);
 
         infoPanel.setStyle("-fx-background-color: #E0F7FA; "
-                + "-fx-background-radius: 10px; "
-                + "-fx-border-radius: 10px; "
-                + "-fx-border-color: #B0BEC5;");
+            + "-fx-background-radius: 10px; "
+            + "-fx-border-radius: 10px; "
+            + "-fx-border-color: #B0BEC5;");
 
         Label lblInfo = new Label("Thông tin:");
         lblInfo.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #ADD8E6;"
-                + "-fx-background-radius: 10px;");
+            + "-fx-background-radius: 10px;");
         lblInfo.setMaxWidth(Double.MAX_VALUE);
         lblInfo.setAlignment(Pos.CENTER);
         lblInfo.setPadding(new Insets(5));
@@ -320,7 +348,8 @@ public class Main {
     private void openEditDocumentDialog(Stage primaryStage) {
         Document selectedDocument = table.getSelectionModel().getSelectedItem();
         if (selectedDocument != null) {
-            EditDocumentDialog editDialog = new EditDocumentDialog(primaryStage, documentList, documentList.indexOf(selectedDocument), this);
+            EditDocumentDialog editDialog = new EditDocumentDialog(primaryStage, documentList,
+                documentList.indexOf(selectedDocument), this);
             editDialog.showAndWait();
         } else {
             showAlert("Vui lòng chọn tài liệu để sửa!");
@@ -330,10 +359,10 @@ public class Main {
     // Lấy dữ liệu từ database và thêm vào documentList
     public void loadDocumentsFromDatabase() {
         String query = "SELECT idDocument, title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10 FROM document";
-        try (Connection connection = ApiToDatabase.getConnection();
+        try (Connection connection = ApiAndDatabase.getConnection();
 
-             PreparedStatement statement = connection.prepareStatement(query);
-             ResultSet resultSet = statement.executeQuery()) {
+            PreparedStatement statement = connection.prepareStatement(query);
+            ResultSet resultSet = statement.executeQuery()) {
 
             documentList.clear(); // Xóa danh sách cũ để đồng bộ
 
@@ -351,7 +380,7 @@ public class Main {
                 String isbn10 = resultSet.getString("isbn10");
 
                 Document document = new Document(idDocument, title, author, category, status, quantity,
-                        publisher, publishedDate, description, isbn13, isbn10);
+                    publisher, publishedDate, description, isbn13, isbn10);
                 documentList.add(document);
             }
 

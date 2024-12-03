@@ -105,7 +105,7 @@ public class EditDocumentDialog extends Stage {
     }
 
     private void saveDocument() {
-        try (Connection connection = ApiToDatabase.getConnection()) {
+        try (Connection connection = ApiAndDatabase.getConnection()) {
             String title = titleField.getText().trim();
             String author = authorField.getText().trim();
             String category = categoryField.getText().trim();
