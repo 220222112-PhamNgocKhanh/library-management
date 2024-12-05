@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Main {
+public class DocumentManagement {
 
   private TableView<Document> table;
   private TextArea bookInfoArea;
@@ -26,7 +26,7 @@ public class Main {
   private ObservableList<Document> observableDocumentList;
 
   // Constructor nhận các tham số truyền vào
-  public Main(Stage primaryStage, ArrayList<User> userList,
+  public DocumentManagement(Stage primaryStage, ArrayList<User> userList,
       ObservableList<Document> observableDocumentList) {
     this.userList = userList;
     this.observableDocumentList = observableDocumentList;

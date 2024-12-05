@@ -35,11 +35,11 @@ public class borrowerManagementDialog extends Stage {
   private TableView<Borrower> leftTable; // Bảng hiển thị danh sách người mượn
   private ObservableList<Borrower> borrowerList;
   TextArea detailArea;
-  Main mainInstance;
+  DocumentManagement documentManagementInstance;
   Stage editBorrowerStage;
 
-  public borrowerManagementDialog(Main mainInstance) {
-    this.mainInstance = mainInstance;
+  public borrowerManagementDialog(DocumentManagement documentManagementInstance) {
+    this.documentManagementInstance = documentManagementInstance;
     Stage borrowerStage = new Stage();
     borrowerStage.initModality(Modality.APPLICATION_MODAL);
     borrowerStage.setTitle("Quản lý người mượn");
@@ -210,7 +210,7 @@ public class borrowerManagementDialog extends Stage {
       } else {
         borrowDocument(selectedBorrower);
         try {
-          mainInstance.loadDocumentsFromDatabase();
+          documentManagementInstance.loadDocumentsFromDatabase();
         } catch (NullPointerException ex) {
 
         }
@@ -223,7 +223,8 @@ public class borrowerManagementDialog extends Stage {
         showAlert("Lỗi", "Vui lòng chọn người mượn để thao tác", AlertType.ERROR);
       } else {
         int id = selectedBorrower.getIdBorrower();
-        BorrowHistoryDialog borrowHistoryDialog = new BorrowHistoryDialog(id, mainInstance);
+        BorrowHistoryDialog borrowHistoryDialog = new BorrowHistoryDialog(id,
+            documentManagementInstance);
       }
     });
   }
@@ -761,7 +762,7 @@ public class borrowerManagementDialog extends Stage {
 
       borrowDocumentForBorrower(borrower, selectedDocument, returnDate); // Gọi hàm mượn tài liệu
       try {
-        mainInstance.loadDocumentsFromDatabase();
+        documentManagementInstance.loadDocumentsFromDatabase();
       } catch (NullPointerException ex) {
 
       }

@@ -24,19 +24,16 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 
-public class Intro extends Application {
+public class Interface  {
 
   private BorderPane root; // Dùng để thay đổi nội dung chính
   private ObservableList<Document> observableDocumentList;
   private ArrayList<User> userList;
   private ArrayList<Document> documentList;
-  Main mainInstance;
+  DocumentManagement documentManagementInstance;
 
-  public static void main(String[] args) {
-    launch(args);
-  }
 
-  @Override
+
   public void start(Stage primaryStage) {
     // Khởi tạo dữ liệu
     documentList = new ArrayList<>();
@@ -227,7 +224,7 @@ public class Intro extends Application {
       hiddenStage.setOpacity(0); // Đặt cửa sổ vô hình
 
       // Tạo một đối tượng Main
-      Main mainInstance = new Main(hiddenStage, userList, observableDocumentList);
+      DocumentManagement documentManagementInstance = new DocumentManagement(hiddenStage, userList, observableDocumentList);
 
       // Lấy giao diện chính từ Scene của Main
       Scene mainScene = hiddenStage.getScene();
@@ -252,7 +249,7 @@ public class Intro extends Application {
     try {
       // Tạo một đối tượng MemberManagement
       borrowerManagementDialog borrowerManagementDialog = new borrowerManagementDialog(
-          mainInstance);
+          documentManagementInstance);
 
       // Lấy nội dung giao diện từ MemberManagement
       Scene memberScene = borrowerManagementDialog.getScene(); // Lấy scene từ class MemberManagement

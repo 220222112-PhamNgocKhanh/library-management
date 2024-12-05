@@ -11,7 +11,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -27,11 +26,11 @@ public class BorrowHistoryDialog extends Stage {
 
   private int selectedBorrowerId;
   private int selectedDocumentId;
-  Main mainInstance;
+  DocumentManagement documentManagementInstance;
 
-  public BorrowHistoryDialog(int borrowerId, Main mainInstance) {
+  public BorrowHistoryDialog(int borrowerId, DocumentManagement documentManagementInstance) {
     this.selectedBorrowerId = borrowerId;
-    this.mainInstance = mainInstance;
+    this.documentManagementInstance = documentManagementInstance;
 
     Stage historyStage = new Stage();
     historyStage.initModality(Modality.APPLICATION_MODAL);
@@ -134,7 +133,7 @@ public class BorrowHistoryDialog extends Stage {
       }
       editHistory(selected);
       try {
-        mainInstance.loadDocumentsFromDatabase();
+        documentManagementInstance.loadDocumentsFromDatabase();
       } catch (NullPointerException ex) {
 
       }
@@ -148,7 +147,7 @@ public class BorrowHistoryDialog extends Stage {
       }
       deleteHistory(selected);
       try {
-        mainInstance.loadDocumentsFromDatabase();
+        documentManagementInstance.loadDocumentsFromDatabase();
       } catch (NullPointerException ex) {
 
       }
@@ -242,7 +241,7 @@ public class BorrowHistoryDialog extends Stage {
 
       // Load lại dữ liệu và thông báo thành công
       loadHistoryForBorrower(); // Phương thức load lại danh sách lịch sử
-      mainInstance.loadDocumentsFromDatabase(); // Phương thức load lại danh sách tài liệu
+      documentManagementInstance.loadDocumentsFromDatabase(); // Phương thức load lại danh sách tài liệu
       showAlert("Thành công", "Tài liệu đã được trả thành công!", Alert.AlertType.INFORMATION);
     } catch (SQLException ex) {
       showAlert("Lỗi", "Không thể cập nhật dữ liệu trong cơ sở dữ liệu!", Alert.AlertType.ERROR);

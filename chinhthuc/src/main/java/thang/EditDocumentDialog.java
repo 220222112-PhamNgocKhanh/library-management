@@ -27,13 +27,13 @@ public class EditDocumentDialog extends Stage {
   private TextArea descriptionArea;
   private int selectedRow;
   private ArrayList<Document> documentList;
-  private Main mainInstance;
+  private DocumentManagement documentManagementInstance;
 
   public EditDocumentDialog(Stage parent, ArrayList<Document> documentList, int selectedRow,
-      Main mainInstance) {
+      DocumentManagement documentManagementInstance) {
     this.documentList = documentList;
     this.selectedRow = selectedRow;
-    this.mainInstance = mainInstance;
+    this.documentManagementInstance = documentManagementInstance;
 
     initModality(Modality.APPLICATION_MODAL);
     initOwner(parent);
@@ -163,7 +163,7 @@ public class EditDocumentDialog extends Stage {
         }
 
         if (rowsAffected > 0) {
-          mainInstance.loadDocumentsFromDatabase();
+          documentManagementInstance.loadDocumentsFromDatabase();
           getIcons().add(icon);
           showAlert("Thông báo", "Cập nhật thành công!", AlertType.INFORMATION);
           close();

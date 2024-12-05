@@ -42,10 +42,10 @@ public class AddDocumentDialog extends Stage {
   private TextField publishedDateField;
   private TextArea descriptionArea;
   private ArrayList<Document> documentList;
-  private Main mainInstance; // Đối tượng Main để gọi hàm updateTable()
+  private DocumentManagement documentManagementInstance; // Đối tượng Main để gọi hàm updateTable()
 
 
-  public AddDocumentDialog(Stage parent, ArrayList<Document> documentList, Main mainInstance) {
+  public AddDocumentDialog(Stage parent, ArrayList<Document> documentList, DocumentManagement documentManagementInstance) {
     initModality(Modality.APPLICATION_MODAL);
     initOwner(parent);
     setTitle("Thêm tài liệu mới");
@@ -433,7 +433,7 @@ public class AddDocumentDialog extends Stage {
       try {
         duplicateStage.close();
         insertNewDocument(connection, document);
-        mainInstance.loadDocumentsFromDatabase();
+        documentManagementInstance.loadDocumentsFromDatabase();
       } catch (SQLException ex) {
         duplicateStage.getIcons().add(icon);
         showAlert("Lỗi", "Không thể thêm tài liệu mới.", Alert.AlertType.ERROR);
@@ -455,7 +455,7 @@ public class AddDocumentDialog extends Stage {
       duplicateStage.close();
       updateDocumentInDatabase(document, selectedDoc.getIdDocument());
       try {
-        mainInstance.loadDocumentsFromDatabase();
+        documentManagementInstance.loadDocumentsFromDatabase();
       } catch (NullPointerException ex) {
 
       }

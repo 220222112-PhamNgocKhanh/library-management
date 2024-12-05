@@ -93,7 +93,7 @@ public class LoginApp extends Application {
 
       if (FIXED_USERNAME.equals(username) && FIXED_PASSWORD.equals(password)) {
         // Thay đổi sang màn hình chính hoặc logic khác nếu cần
-        new Intro().start(primaryStage);
+        new Interface().start(primaryStage);
       } else {
         showAlert("Sai tên đăng nhập hoặc mật khẩu. Vui lòng thử lại.");
       }

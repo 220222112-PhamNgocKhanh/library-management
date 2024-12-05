@@ -15,6 +15,9 @@ public class FileHandler {
   private static final String INTRO_FILE = "help.txt";
   private static final String NOTE_FILE = "note.txt";
 
+  /**
+   * phương thức hiển thị giúp đỡ
+   */
   public void help() {
     Stage helpStage = new Stage();
     helpStage.setTitle("Trợ giúp");
@@ -49,7 +52,9 @@ public class FileHandler {
     helpStage.show();
   }
 
-  // Hàm mở note.txt và cho phép chỉnh sửa, lưu lại khi người dùng đóng cửa sổ
+  /**
+   * phương thức hiển thị và chỉnh sửa ghi chú
+   */
   public void note() {
     Stage noteStage = new Stage();
     noteStage.setTitle("Ghi chú");
