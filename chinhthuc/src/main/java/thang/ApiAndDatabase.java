@@ -1,4 +1,5 @@
 package thang;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -59,7 +60,8 @@ public class ApiAndDatabase {
               connection.setRequestMethod("GET");
 
               // Đọc phản hồi từ API
-              BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+              BufferedReader reader = new BufferedReader(
+                  new InputStreamReader(connection.getInputStream()));
               StringBuilder response = new StringBuilder();
               String line;
               while ((line = reader.readLine()) != null) {
@@ -103,8 +105,10 @@ public class ApiAndDatabase {
       JSONArray items = jsonResponse.getJSONArray("items");
 
       try (Connection connection = getConnection()) {
-        String insertQuery = "INSERT INTO document (title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String insertQuery =
+            "INSERT INTO document (title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10) "
+                +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
           for (int i = 0; i < items.length(); i++) {
             JSONObject book = items.getJSONObject(i).getJSONObject("volumeInfo");
@@ -162,6 +166,7 @@ public class ApiAndDatabase {
     // Đây là nơi bạn có thể thêm mã để hiển thị cảnh báo lỗi
     System.out.println(message);
   }
+
   // Xử lý mảng (authors hoặc categories), nối các phần tử thành chuỗi
   private String parseArrayToString(JSONArray jsonArray) {
     if (jsonArray != null && jsonArray.length() > 0) {

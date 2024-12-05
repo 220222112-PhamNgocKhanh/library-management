@@ -24,7 +24,7 @@ public class OverdueReminder {
       if (!sentEmails.contains(borrower.getEmail())) {
         String emailContent = generateEmailContent(borrower, true);
         if (sendEmail(borrower, emailContent)) {
-          successMessage.append(String.format("%s - %s",borrower.getName(),borrower.getEmail()));
+          successMessage.append(String.format("%s - %s", borrower.getName(), borrower.getEmail()));
           successMessage.append("\n");
           sentEmails.add(borrower.getEmail());
         }
@@ -78,11 +78,11 @@ public class OverdueReminder {
   private List<Borrower> getOverdueBorrowers() {
     List<Borrower> overdueBorrowers = new ArrayList<>();
     String query = """
-                SELECT DISTINCT b.idBorrower, b.name, b.email
-                FROM borrower b
-                JOIN borrow_history bh ON b.idBorrower = bh.idBorrower
-                WHERE bh.status = 'overdue'
-                """;
+        SELECT DISTINCT b.idBorrower, b.name, b.email
+        FROM borrower b
+        JOIN borrow_history bh ON b.idBorrower = bh.idBorrower
+        WHERE bh.status = 'overdue'
+        """;
 
     ApiAndDatabase apiAndDatabase = new ApiAndDatabase();
     try (Connection conn = apiAndDatabase.getConnection();
@@ -105,11 +105,11 @@ public class OverdueReminder {
   private List<Borrower> getUpcomingDueBorrowers() {
     List<Borrower> borrowers = new ArrayList<>();
     String query = """
-                SELECT DISTINCT b.idBorrower, b.name, b.email
-                FROM borrower b
-                JOIN borrow_history bh ON b.idBorrower = bh.idBorrower
-                WHERE DATEDIFF(bh.returnDate, CURDATE()) <= 3 AND bh.status = 'borrowed'
-                """;
+        SELECT DISTINCT b.idBorrower, b.name, b.email
+        FROM borrower b
+        JOIN borrow_history bh ON b.idBorrower = bh.idBorrower
+        WHERE DATEDIFF(bh.returnDate, CURDATE()) <= 3 AND bh.status = 'borrowed'
+        """;
 
     ApiAndDatabase apiAndDatabase = new ApiAndDatabase();
     try (Connection conn = apiAndDatabase.getConnection();
@@ -130,8 +130,10 @@ public class OverdueReminder {
   }
 
   private String generateEmailContent(Borrower borrower, boolean isOverdue) {
-    StringBuilder emailContent = new StringBuilder("Xin chào, ").append(borrower.getName()).append(",\n");
-    emailContent.append("Bạn có tài liệu sắp hết hạn hoặc đã quá hạn. Xin vui lòng đến thư viện hoàn trả sớm nhất.\n\n");
+    StringBuilder emailContent = new StringBuilder("Xin chào, ").append(borrower.getName())
+        .append(",\n");
+    emailContent.append(
+        "Bạn có tài liệu sắp hết hạn hoặc đã quá hạn. Xin vui lòng đến thư viện hoàn trả sớm nhất.\n\n");
     return emailContent.toString();
   }
 
