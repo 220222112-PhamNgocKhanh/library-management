@@ -178,7 +178,7 @@ public class AddDocumentDialog extends Stage {
     alertStage.getIcons().add(new Image("/logo.png"));
     loadingAlert.show();
 
-    Task<JSONArray> searchTask = new Task<>() {
+      Task<JSONArray> searchTask = new Task<>() {
       @Override
       protected JSONArray call() throws Exception {
         String url =
@@ -199,6 +199,7 @@ public class AddDocumentDialog extends Stage {
         }
       }
     };
+
 
     // Xử lý khi hoàn thành Task
     searchTask.setOnSucceeded(event -> {

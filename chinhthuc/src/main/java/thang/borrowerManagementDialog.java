@@ -77,7 +77,9 @@ public class borrowerManagementDialog extends Stage {
     phoneCol.setPrefWidth(150);
 
     leftTable.getColumns().addAll(idBorrowerCol, nameCol, phoneCol);
-    loadBorrowerFromDatabase(); // Hàm tải dữ liệu
+    new Thread(() -> {
+      loadBorrowerFromDatabase(); // Hàm tải dữ liệu
+    }).start();
 
     // Text area bên phải hiển thị thông tin chi tiết
     detailArea = new TextArea();

@@ -3,6 +3,7 @@ package thang;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import javafx.application.Platform;
 import javax.mail.*;
 import javax.mail.internet.*;
 import javafx.scene.control.Alert;
@@ -41,7 +42,7 @@ public class OverdueReminder {
       }
     }
 
-    showAlertArea("Kết quả", successMessage.toString(), Alert.AlertType.INFORMATION);
+    Platform.runLater(() -> showAlertArea("Kết quả", successMessage.toString(), Alert.AlertType.INFORMATION));
   }
 
   private boolean sendEmail(Borrower borrower, String emailContent) {
