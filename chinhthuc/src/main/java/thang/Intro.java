@@ -62,6 +62,7 @@ public class Intro extends Application {
         Scene scene = new Scene(root, 1000, 650);
         primaryStage.setScene(scene);
         primaryStage.show();
+        primaryStage.setResizable(false);
     }
 
     /**
@@ -82,13 +83,13 @@ public class Intro extends Application {
         Label title = new Label("Library\nManagement");
         title.setStyle("-fx-font-size: 25px; -fx-font-weight: bold; -fx-text-fill: white;");
 
-        Button homeButton = new Button("Home");
+        Button homeButton = new Button("Trang chủ");
         Button helpButton = new Button("Trợ giúp");
         Button bookButton = new Button("Quản lý sách");
         Button noteButton = new Button("Ghi chú");
-        Button memberButton = new Button("Thành viên");
+        Button borrowerButton = new Button("Người mượn");
 
-        for (Button btn : new Button[]{homeButton, bookButton, memberButton, noteButton, helpButton}) {
+        for (Button btn : new Button[]{homeButton, bookButton, borrowerButton, noteButton, helpButton}) {
             btn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 16px; -fx-alignment: CENTER_LEFT;");
             btn.setMaxWidth(Double.MAX_VALUE);
 
@@ -97,10 +98,10 @@ public class Intro extends Application {
                 highlightButton(btn); // Highlight nút được nhấn
                 // Gọi phương thức tương ứng
                 if (btn == homeButton) switchToHome();
-                else if (btn == helpButton) new FileHandler().introduce();
+                else if (btn == helpButton) new FileHandler().help();
                 else if (btn == bookButton) switchToBookManagement();
                 else if (btn == noteButton) new FileHandler().note();
-                else if (btn == memberButton) switchToMemberManagement();
+                else if (btn == borrowerButton) switchToBorrowerManagement();
             });
         }
 
@@ -116,7 +117,7 @@ public class Intro extends Application {
         });
 
         // Thêm các nút vào sidebar
-        sidebar.getChildren().addAll(title, homeButton, bookButton, memberButton, noteButton, helpButton);
+        sidebar.getChildren().addAll(title, homeButton, bookButton, borrowerButton, noteButton, helpButton);
 
         // Thêm khoảng trống giữa các nút và nút Đăng xuất
         Region spacer = new Region();
@@ -153,7 +154,7 @@ public class Intro extends Application {
         // Thêm logo vào nút
         homeButton.setGraphic(homeIcon);
         bookButton.setGraphic(bookIcon);
-        memberButton.setGraphic(memberIcon);
+        borrowerButton.setGraphic(memberIcon);
         noteButton.setGraphic(noteIcon);
         helpButton.setGraphic(helpIcon);
         logoutButton.setGraphic(logoutIcon);
@@ -232,7 +233,7 @@ public class Intro extends Application {
     /**
      * Chuyển sang nội dung "Thành viên"
      */
-    private void switchToMemberManagement() {
+    private void switchToBorrowerManagement() {
         try {
             // Tạo một đối tượng MemberManagement
             borrowerManagementDialog borrowerManagementDialog = new borrowerManagementDialog(mainInstance);

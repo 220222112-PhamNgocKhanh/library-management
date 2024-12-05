@@ -36,6 +36,7 @@ public class borrowerManagementDialog extends Stage {
     private ObservableList<Borrower> borrowerList;
     TextArea detailArea;
     Main mainInstance;
+    Stage editBorrowerStage;
 
     public borrowerManagementDialog(Main mainInstance) {
         this.mainInstance = mainInstance;
@@ -110,15 +111,15 @@ public class borrowerManagementDialog extends Stage {
         row1.setAlignment(Pos.CENTER);
 
         Button addButton = new Button("Thêm người mượn");
-        addButton.setPrefWidth(150);
+        addButton.setPrefWidth(160);
         addButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
 
         Button editButton = new Button("Sửa người mượn");
-        editButton.setPrefWidth(150);
+        editButton.setPrefWidth(160);
         editButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
 
         Button deleteButton = new Button("Xóa người mượn");
-        deleteButton.setPrefWidth(150);
+        deleteButton.setPrefWidth(160);
         deleteButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
 
         row1.getChildren().addAll(addButton, editButton, deleteButton);
@@ -129,18 +130,15 @@ public class borrowerManagementDialog extends Stage {
 
 
         Button borrowButton = new Button("Mượn tài liệu");
-        borrowButton.setPrefWidth(150);
+        borrowButton.setPrefWidth(160);
         borrowButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
 
         Button returnButton = new Button("Trả tài liệu");
-        returnButton.setPrefWidth(150);
+        returnButton.setPrefWidth(160);
         returnButton.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
 
-        Button cancel = new Button("Thoát");
-        cancel.setPrefWidth(150);
-        cancel.setStyle("-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
 
-        row2.getChildren().addAll(borrowButton, returnButton, cancel);
+        row2.getChildren().addAll(borrowButton, returnButton);
 
 // Đưa hai hàng nút vào VBox
         VBox buttonBox = new VBox(10);
@@ -161,9 +159,6 @@ public class borrowerManagementDialog extends Stage {
         filterButton.setOnAction(e -> {
             filterBorrowersWithOverdueBooks();
         });
-
-        // Nút thoát
-        cancel.setOnAction(e -> borrowerStage.close());
 
         //xử lý khi nhập vào ô tìm kiếm
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -292,16 +287,6 @@ public class borrowerManagementDialog extends Stage {
         }
     }
 
-    //xoa du lieu tu bang thong tin khi khong tron gi
-    private void clearBorrowerDetails() {
-        idBorrowerField.clear();
-        nameField.clear();
-        sexField.setValue(null);
-        ageField.clear();
-        emailField.clear();
-        phoneField.clear();
-        addressField.clear();
-    }
 
     /**
      * them nguoi muon( nhap du lieu)
@@ -503,6 +488,7 @@ public class borrowerManagementDialog extends Stage {
      */
     private void editBorrower(Borrower borrower) {
         Stage editBorrowerStage = new Stage();
+        this.editBorrowerStage = editBorrowerStage;
         editBorrowerStage.initModality(Modality.APPLICATION_MODAL);
         editBorrowerStage.setTitle("Sửa thông tin người mượn");
 
@@ -546,7 +532,6 @@ public class borrowerManagementDialog extends Stage {
 
         saveButton.setOnAction(e -> {
             saveBorrower(borrower.getIdBorrower());
-            editBorrowerStage.close();
         });
 
         cancelButton.setOnAction(e -> {
@@ -616,12 +601,13 @@ public class borrowerManagementDialog extends Stage {
                     loadBorrowerFromDatabase();
                     showAlert("Thông báo", "Cập nhật thành công!", AlertType.INFORMATION);
                     close();
+                    editBorrowerStage.close();
                 } else {
                     showAlert("Lỗi", "Không thể cập nhật người mượn!", AlertType.ERROR);
                 }
             }
         } catch (NumberFormatException e) {
-            showAlert("Lỗi", "Vui lòng nhập đúng tuổi!", AlertType.ERROR);
+            showAlert("Lỗi", "Vui lòng nhập tuổi!", AlertType.ERROR);
         } catch (SQLException e) {
             showAlert("Lỗi", "Lỗi kết nối cơ sở dữ liệu: ", AlertType.ERROR);
         }

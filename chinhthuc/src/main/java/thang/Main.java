@@ -1,6 +1,5 @@
 package thang;
 
-import chinhsua.OverdueReminder;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -227,27 +226,9 @@ public class Main  {
                 // Xử lý kết quả xác nhận
                 confirmAlert.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
-                        boolean success = deleteDocument.deleteDocument(idDocument);
-
-                        if (success) {
-                            // Hiển thị thông báo xóa thành công
-                            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                            successAlert.setTitle("Thành công");
-                            successAlert.setHeaderText(null);
-                            successAlert.setContentText("Tài liệu đã được xóa!");
-                            successAlert.showAndWait();
-
-                            // Làm mới bảng dữ liệu
-                            loadDocumentsFromDatabase();
-                        } else {
-                            // Hiển thị thông báo xóa thất bại
-                            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                            errorAlert.setTitle("Lỗi");
-                            errorAlert.setHeaderText(null);
-                            errorAlert.setContentText("Không thể xóa tài liệu. Vui lòng thử lại.");
-                            errorAlert.showAndWait();
-                        }
+                         deleteDocument.deleteDocument(idDocument);
                     }
+                    loadDocumentsFromDatabase();
                 });
             } else {
                 // Hiển thị thông báo khi chưa chọn tài liệu
@@ -260,8 +241,8 @@ public class Main  {
         });
 
         remindButton.setOnAction(e -> {
-            chinhsua.OverdueReminder overdueReminder = new OverdueReminder();
-            overdueReminder.sendOverdueReminders();
+            OverdueReminder overdueReminder = new OverdueReminder();
+            overdueReminder.sendReminders();
         });
 
         buttonPanel.getChildren().addAll(btnAdd, btnEdit, btnDelete, remindButton);

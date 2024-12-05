@@ -9,7 +9,5 @@ module code.chinhthuc {
   requires eu.hansolo.fx.countries;
   requires javafx.controls;
 
-  exports code.chinhthuc;
   exports thang;
-    exports chinhsua;
 }

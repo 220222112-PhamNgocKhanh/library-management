@@ -19,6 +19,8 @@ public class LoginApp extends Application {
         // Tải ảnh nền
         Image backgroundImage = new Image("/background.jpg"); // Đảm bảo đường dẫn đúng
         ImageView backgroundImageView = new ImageView(backgroundImage);
+        Image windowIcon = new Image(getClass().getResourceAsStream("/logo.png")); // Đảm bảo đường dẫn đúng
+        primaryStage.getIcons().add(windowIcon);
 
         // Thiết lập ảnh nền sao cho nó phủ đầy cửa sổ
         backgroundImageView.setFitWidth(350); // Đặt chiều rộng của ảnh nền theo kích thước cửa sổ
@@ -71,13 +73,13 @@ public class LoginApp extends Application {
         // Nút Đăng nhập
         Button loginButton = new Button("Đăng nhập");
         loginButton.setStyle("-fx-background-color: #00AAFF; -fx-text-fill: white; -fx-font-weight: bold;"
-                + "-fx-border-radius: 50; -fx-background-radius: 50; -fx-padding: 10;");
+            + "-fx-border-radius: 50; -fx-background-radius: 50; -fx-padding: 10;");
         loginButton.setPrefWidth(100);
 
         // Nút Thoát
         Button exitButton = new Button("Thoát");
         exitButton.setStyle("-fx-background-color: #D32F2F; -fx-text-fill: white; -fx-font-weight: bold; "
-                + "-fx-border-radius: 50; -fx-background-radius: 50; -fx-padding: 10;");
+            + "-fx-border-radius: 50; -fx-background-radius: 50; -fx-padding: 10;");
         exitButton.setPrefWidth(100);
 
         // Sự kiện khi nhấn nút đăng nhập

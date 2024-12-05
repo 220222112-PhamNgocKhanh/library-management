@@ -7,6 +7,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -35,6 +36,10 @@ public class EditDocumentDialog extends Stage {
         initModality(Modality.APPLICATION_MODAL);
         initOwner(parent);
         setTitle("Sửa tài liệu");
+
+        // Đặt biểu tượng cho cửa sổ
+        Image icon = new Image("/logo.png");
+        getIcons().add(icon);
 
         Document document = documentList.get(selectedRow);
 
@@ -105,6 +110,9 @@ public class EditDocumentDialog extends Stage {
     }
 
     private void saveDocument() {
+        // Đặt biểu tượng cho cửa sổ
+        Image icon = new Image("/logo.png");
+
         try (Connection connection = ApiAndDatabase.getConnection()) {
             String title = titleField.getText().trim();
             String author = authorField.getText().trim();
@@ -140,18 +148,33 @@ public class EditDocumentDialog extends Stage {
                 preparedStatement.setInt(11, document.getIdDocument());
 
                 int rowsAffected = preparedStatement.executeUpdate();
+                if (title.isEmpty()) {
+                    getIcons().add(icon);
+                    showAlert("Lỗi", "Tên tài liệu không được để trống!", Alert.AlertType.ERROR);
+                    return;
+                }
+
+                if (quantity < 0) {
+                    getIcons().add(icon);
+                    showAlert("Lỗi", "Số lượng tài liệu không được nhỏ hơn 0!", Alert.AlertType.ERROR);
+                    return;
+                }
 
                 if (rowsAffected > 0) {
                     mainInstance.loadDocumentsFromDatabase();
+                    getIcons().add(icon);
                     showAlert("Thông báo", "Cập nhật thành công!",AlertType.INFORMATION);
                     close();
                 } else {
+                    getIcons().add(icon);
                     showAlert("Lỗi", "Không thể cập nhật tài liệu!",AlertType.ERROR);
                 }
             }
         } catch (NumberFormatException e) {
-            showAlert("Lỗi", "Vui lòng nhập đúng số lượng!",AlertType.ERROR);
+            getIcons().add(icon);
+            showAlert("Lỗi", "Nhập đúng định dạng số lượng",AlertType.ERROR);
         } catch (SQLException e) {
+            getIcons().add(icon);
             showAlert("Lỗi", "Lỗi kết nối cơ sở dữ liệu: ",AlertType.ERROR);
         }
     }

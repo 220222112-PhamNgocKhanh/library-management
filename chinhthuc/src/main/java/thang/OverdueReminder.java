@@ -1,88 +1,52 @@
 package thang;
 
-import eu.hansolo.fx.countries.tools.Api;
 import java.sql.*;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.*;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.mail.*;
 import javax.mail.internet.*;
+import javafx.scene.control.Alert;
 
 public class OverdueReminder {
 
   private final String emailUsername = "libraryoop5@gmail.com";
-  private final String emailPassword = "vkkd ghnu rnej tkqu";
+  private final String emailPassword = "ekcy cqdj shmj kqfg";
 
-  public void sendOverdueReminders() {
+  private final Set<String> sentEmails = ConcurrentHashMap.newKeySet();
+
+  public void sendReminders() {
     List<Borrower> overdueBorrowers = getOverdueBorrowers();
+    List<Borrower> upcomingDueBorrowers = getUpcomingDueBorrowers();
 
-    if (overdueBorrowers.isEmpty()) {
-      showAlert("Thông báo", "Không có người mượn quá hạn.", AlertType.INFORMATION);
-      return;
-    }
-
-    int successfulEmails = 0;
-    StringBuilder successfulEmailList = new StringBuilder("Danh sách email đã gửi:\n");
+    StringBuilder successMessage = new StringBuilder("Danh sách email đã được gửi:\n");
 
     for (Borrower borrower : overdueBorrowers) {
-      boolean success = sendEmail(borrower);
-      if (success) {
-        successfulEmails++;
-        successfulEmailList.append(borrower.getEmail()).append("\n");
-      }
-    }
-
-    if (successfulEmails > 0) {
-      showAlert("Kết quả", successfulEmails + " email nhắc nhở đã được gửi thành công.\n" + successfulEmailList.toString(), AlertType.INFORMATION);
-    } else {
-      showAlert("Kết quả", "Không có email nào được gửi thành công.", AlertType.INFORMATION);
-    }
-  }
-
-
-  private List<Borrower> getOverdueBorrowers() {
-    List<Borrower> overdueBorrowers = new ArrayList<>();
-    String query = """
-            SELECT DISTINCT b.idBorrower, b.name, b.email
-                        FROM borrower b
-                        JOIN borrow_history bh ON b.idBorrower = bh.idBorrower
-                        where bh.status = "overdue"
-        """;
-
-    ApiAndDatabase apiAndDatabase = new ApiAndDatabase();
-    try (Connection conn = apiAndDatabase.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(query)) {
-
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          int id = rs.getInt("idBorrower");
-          String name = rs.getString("name");
-          String email = rs.getString("email");
-
-          overdueBorrowers.add(new Borrower(id, name, email));
+      if (!sentEmails.contains(borrower.getEmail())) {
+        String emailContent = generateEmailContent(borrower, true);
+        if (sendEmail(borrower, emailContent)) {
+          successMessage.append(String.format("%s - %s",borrower.getName(),borrower.getEmail()));
+          successMessage.append("\n");
+          sentEmails.add(borrower.getEmail());
         }
       }
-    } catch (SQLException e) {
-      System.out.println(e.getMessage());
     }
 
-    return overdueBorrowers;
+    for (Borrower borrower : upcomingDueBorrowers) {
+      if (!sentEmails.contains(borrower.getEmail())) {
+        String emailContent = generateEmailContent(borrower, false);
+        if (sendEmail(borrower, emailContent)) {
+          successMessage.append(borrower.getEmail()).append("\n");
+          sentEmails.add(borrower.getEmail());
+        }
+      }
+    }
+
+    showAlertArea("Kết quả", successMessage.toString(), Alert.AlertType.INFORMATION);
   }
 
-  private boolean sendEmail(Borrower borrower) {
+  private boolean sendEmail(Borrower borrower, String emailContent) {
     String recipient = borrower.getEmail();
-    String subject = "Nhắc nhở trả sách quá hạn";
-    String content = """
-            Xin chào %s,
-        
-            Bạn hiện đang có sách mượn quá hạn. Vui lòng đến thư viện để hoàn trả sớm nhất.
-        
-            Cảm ơn!
-        """.formatted(borrower.getName());
+    String subject = "Nhắc nhở tài liệu mượn";
 
     Properties props = new Properties();
     props.put("mail.smtp.auth", "true");
@@ -102,22 +66,87 @@ public class OverdueReminder {
       message.setFrom(new InternetAddress(emailUsername));
       message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipient));
       message.setSubject(subject);
-      message.setText(content);
+      message.setText(emailContent);
 
       Transport.send(message);
       return true;
     } catch (MessagingException e) {
-      showAlert("Lỗi", "Không thể gửi email đến: " + recipient + "\n" + e.getMessage(),
-          AlertType.ERROR);
       return false;
     }
   }
 
-  private void showAlert(String title, String message, AlertType type) {
+  private List<Borrower> getOverdueBorrowers() {
+    List<Borrower> overdueBorrowers = new ArrayList<>();
+    String query = """
+                SELECT DISTINCT b.idBorrower, b.name, b.email
+                FROM borrower b
+                JOIN borrow_history bh ON b.idBorrower = bh.idBorrower
+                WHERE bh.status = 'overdue'
+                """;
+
+    ApiAndDatabase apiAndDatabase = new ApiAndDatabase();
+    try (Connection conn = apiAndDatabase.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(query);
+        ResultSet rs = stmt.executeQuery()) {
+
+      while (rs.next()) {
+        int id = rs.getInt("idBorrower");
+        String name = rs.getString("name");
+        String email = rs.getString("email");
+        overdueBorrowers.add(new Borrower(id, name, email));
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+
+    return overdueBorrowers;
+  }
+
+  private List<Borrower> getUpcomingDueBorrowers() {
+    List<Borrower> borrowers = new ArrayList<>();
+    String query = """
+                SELECT DISTINCT b.idBorrower, b.name, b.email
+                FROM borrower b
+                JOIN borrow_history bh ON b.idBorrower = bh.idBorrower
+                WHERE DATEDIFF(bh.returnDate, CURDATE()) <= 3 AND bh.status = 'borrowed'
+                """;
+
+    ApiAndDatabase apiAndDatabase = new ApiAndDatabase();
+    try (Connection conn = apiAndDatabase.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(query);
+        ResultSet rs = stmt.executeQuery()) {
+
+      while (rs.next()) {
+        int id = rs.getInt("idBorrower");
+        String name = rs.getString("name");
+        String email = rs.getString("email");
+        borrowers.add(new Borrower(id, name, email));
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+
+    return borrowers;
+  }
+
+  private String generateEmailContent(Borrower borrower, boolean isOverdue) {
+    StringBuilder emailContent = new StringBuilder("Xin chào, ").append(borrower.getName()).append(",\n");
+    emailContent.append("Bạn có tài liệu sắp hết hạn hoặc đã quá hạn. Xin vui lòng đến thư viện hoàn trả sớm nhất.\n\n");
+    return emailContent.toString();
+  }
+
+  private void showAlertArea(String title, String message, Alert.AlertType type) {
     Alert alert = new Alert(type);
     alert.setTitle(title);
     alert.setHeaderText(null);
-    alert.setContentText(message);
+
+    javafx.scene.control.TextArea textArea = new javafx.scene.control.TextArea(message);
+    textArea.setEditable(false);
+    textArea.setWrapText(true);
+    textArea.setMaxWidth(Double.MAX_VALUE);
+    textArea.setMaxHeight(Double.MAX_VALUE);
+
+    alert.getDialogPane().setContent(textArea);
     alert.showAndWait();
   }
 }

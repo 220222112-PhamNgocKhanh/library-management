@@ -302,12 +302,13 @@ public class BorrowHistoryDialog extends Stage {
                 connection.setAutoCommit(false);
 
                 String oldStatus = borrowHistory.getStatus();
+                LocalDate editBorrowDate = editBorrowDateField.getValue();
                 String newStatus = editStatusField.getValue();
-                LocalDate editedBorrowDate = editBorrowDateField.getValue();
+                LocalDate editedReturnDate = editReturnDateField.getValue();
                 LocalDate currentDate = LocalDate.now();
 
-                // Kiểm tra nếu ngày mượn chỉnh sửa xuống dưới ngày hiện tại, cập nhật trạng thái thành "overdue"
-                if (editedBorrowDate.isBefore(currentDate)) {
+                // Kiểm tra nếu ngày trả chỉnh sửa xuống dưới ngày hiện tại, cập nhật trạng thái thành "overdue"
+                if (editedReturnDate.isBefore(currentDate) && oldStatus == "borrowed") {
                     newStatus = "overdue";  // Cập nhật trạng thái thành "overdue"
                     editStatusField.setValue(newStatus);  // Cập nhật giá trị ComboBox
                 }
@@ -319,7 +320,7 @@ public class BorrowHistoryDialog extends Stage {
         WHERE idDocument = ? AND idBorrower = ?
         """;
                 PreparedStatement preparedStatement = connection.prepareStatement(query);
-                preparedStatement.setDate(1, Date.valueOf(editedBorrowDate));
+                preparedStatement.setDate(1, Date.valueOf(editBorrowDate));
                 preparedStatement.setDate(2, Date.valueOf(editReturnDateField.getValue()));
                 preparedStatement.setString(3, newStatus);
                 preparedStatement.setInt(4, borrowHistory.getIdDocument());
