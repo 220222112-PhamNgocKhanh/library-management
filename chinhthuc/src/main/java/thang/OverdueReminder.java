@@ -12,9 +12,11 @@ public class OverdueReminder {
 
   private final String emailUsername = "libraryoop5@gmail.com";
   private final String emailPassword = "ekcy cqdj shmj kqfg";
-
   private final Set<String> sentEmails = ConcurrentHashMap.newKeySet();
 
+  /**
+   * Thong bao da gui email.
+   */
   public void sendReminders() {
     List<Borrower> overdueBorrowers = getOverdueBorrowers();
     List<Borrower> upcomingDueBorrowers = getUpcomingDueBorrowers();
@@ -45,6 +47,9 @@ public class OverdueReminder {
     Platform.runLater(() -> showAlertArea("Kết quả", successMessage.toString(), Alert.AlertType.INFORMATION));
   }
 
+  /**
+   * Phuong thuc gui email.
+   */
   private boolean sendEmail(Borrower borrower, String emailContent) {
     String recipient = borrower.getEmail();
     String subject = "Nhắc nhở tài liệu mượn";
@@ -76,6 +81,9 @@ public class OverdueReminder {
     }
   }
 
+  /**
+   * Danh sach nguoi muon qua han.
+   */
   private List<Borrower> getOverdueBorrowers() {
     List<Borrower> overdueBorrowers = new ArrayList<>();
     String query = """
@@ -103,6 +111,9 @@ public class OverdueReminder {
     return overdueBorrowers;
   }
 
+  /**
+   *  Danh sach nguoi muon sap qua han.
+   */
   private List<Borrower> getUpcomingDueBorrowers() {
     List<Borrower> borrowers = new ArrayList<>();
     String query = """
@@ -130,6 +141,9 @@ public class OverdueReminder {
     return borrowers;
   }
 
+  /**
+   *  Noi dung email.
+   */
   private String generateEmailContent(Borrower borrower, boolean isOverdue) {
     StringBuilder emailContent = new StringBuilder("Xin chào, ").append(borrower.getName())
         .append(",\n");

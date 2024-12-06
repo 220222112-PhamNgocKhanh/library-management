@@ -8,7 +8,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
 public class DeleteDocument {
-
+  /**
+   * Xoa tai lieu.
+   */
   public void deleteDocument(int idDocument) {
     String checkQuery = """
             SELECT  b.name, bh.status,b.phone
@@ -61,6 +63,9 @@ public class DeleteDocument {
     }
   }
 
+  /**
+   * Thong bao nang cao.
+   */
   private void showAlertarea(String title, String message, AlertType type) {
     Alert alert = new Alert(type);
     alert.setTitle(title);

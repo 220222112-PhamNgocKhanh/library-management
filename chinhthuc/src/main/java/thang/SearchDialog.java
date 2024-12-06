@@ -23,6 +23,9 @@ public class SearchDialog extends Stage {
   private TableView<Document> table;
   private Stage parentStage;
 
+  /**
+   * Constructor
+   */
   public SearchDialog(Stage parent, ArrayList<Document> documentList, TableView<Document> table,
       TextArea bookInfoArea) {
     this.documentList = documentList;
@@ -94,7 +97,6 @@ public class SearchDialog extends Stage {
       bookInfoArea.clear(); // Xóa nội dung trong ô "Thông tin"
     }
   }
-
 
   // Hàm công khai để gọi performSearch từ bên ngoài
   public void search(String searchTerm) {

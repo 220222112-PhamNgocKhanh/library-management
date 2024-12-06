@@ -29,6 +29,9 @@ public class EditDocumentDialog extends Stage {
   private ArrayList<Document> documentList;
   private DocumentManagement documentManagementInstance;
 
+  /**
+   * Constructor.
+   */
   public EditDocumentDialog(Stage parent, ArrayList<Document> documentList, int selectedRow,
       DocumentManagement documentManagementInstance) {
     this.documentList = documentList;
@@ -111,6 +114,9 @@ public class EditDocumentDialog extends Stage {
     sizeToScene();
   }
 
+  /**
+   * Luu tai lieu sau khi sua.
+   */
   private void saveDocument() {
     // Đặt biểu tượng cho cửa sổ
     Image icon = new Image("/logo.png");

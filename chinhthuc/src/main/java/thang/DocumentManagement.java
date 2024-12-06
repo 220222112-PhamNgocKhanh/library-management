@@ -22,13 +22,11 @@ public class DocumentManagement {
   private TextArea bookInfoArea;
   private TextField searchField;
   private ArrayList<Document> documentList;
-  private ArrayList<User> userList;
   private ObservableList<Document> observableDocumentList;
 
   // Constructor nhận các tham số truyền vào
-  public DocumentManagement(Stage primaryStage, ArrayList<User> userList,
+  public DocumentManagement(Stage primaryStage,
       ObservableList<Document> observableDocumentList) {
-    this.userList = userList;
     this.observableDocumentList = observableDocumentList;
     this.documentList = new ArrayList<>(
         observableDocumentList); // Đồng bộ dữ liệu từ observableDocumentList

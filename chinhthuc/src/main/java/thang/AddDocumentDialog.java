@@ -44,7 +44,9 @@ public class AddDocumentDialog extends Stage {
   private ArrayList<Document> documentList;
   private DocumentManagement documentManagementInstance; // Đối tượng Main để gọi hàm updateTable()
 
-
+  /**
+   * Constructor.
+   */
   public AddDocumentDialog(Stage parent, ArrayList<Document> documentList, DocumentManagement documentManagementInstance) {
     initModality(Modality.APPLICATION_MODAL);
     initOwner(parent);
@@ -153,6 +155,9 @@ public class AddDocumentDialog extends Stage {
     setResizable(false);
   }
 
+  /**
+   * Thiết lập cấu trúc bảng.
+   */
   private Label createFixedLabel(String text, int width) {
     Label label = new Label(text);
     label.setPrefWidth(width);
@@ -160,13 +165,18 @@ public class AddDocumentDialog extends Stage {
     return label;
   }
 
+  /**
+   * Thiết lập cấu trúc bảng.
+   */
   private TextField createFixedTextField(int width) {
     TextField textField = new TextField();
     textField.setPrefWidth(width);
     return textField;
   }
 
-
+  /**
+   * Tìm kiếm.
+   */
   private void searchBooks(String query) {
     // Hiển thị trạng thái đang tải
     Alert loadingAlert = new Alert(Alert.AlertType.INFORMATION);
@@ -228,6 +238,9 @@ public class AddDocumentDialog extends Stage {
     searchThread.start();
   }
 
+  /**
+   * Hiển thị kết quả tìm kiếm.
+   */
   private void showSearchResults(JSONArray items) {
     // Tạo Stage mới để hiển thị kết quả tìm kiếm
     Stage resultsStage = new Stage();
@@ -297,7 +310,9 @@ public class AddDocumentDialog extends Stage {
     resultsStage.showAndWait();
   }
 
-
+  /**
+   * Điền thông tin sách.
+   */
   private void fillBookDetails(JSONObject book) {
     JSONObject volumeInfo = book.getJSONObject("volumeInfo");
 
@@ -320,7 +335,9 @@ public class AddDocumentDialog extends Stage {
     }
   }
 
-  //nhập thông tin vào bảng thêm tài liệu và kiểm tra ngoại lệ
+  /**
+   * nhập thông tin vào bảng thêm tài liệu và kiểm tra ngoại lệ.
+   */
   private void addDocument() {
     Image icon = new Image("/logo.png");
     try {
@@ -374,7 +391,9 @@ public class AddDocumentDialog extends Stage {
     }
   }
 
-  //hiển thị danh sách những tài liệu trùng tên lên một cửa sổ khác và những trường xử lý
+  /**
+   * hiển thị danh sách những tài liệu trùng tên lên một cửa sổ khác và những trường xử lý.
+   */
   private void showDuplicateDocuments(ResultSet resultSet, Connection connection, Document document)
       throws SQLException {
     Stage duplicateStage = new Stage();
@@ -472,7 +491,9 @@ public class AddDocumentDialog extends Stage {
     duplicateStage.showAndWait();
   }
 
-  //thêm mới tài liệu
+  /**
+   * thêm mới tài liệu.
+   */
   private void insertNewDocument(Connection connection, Document document) throws SQLException {
     String insertQuery =
         "INSERT INTO document (title, author, category, status, quantity, publisher, publishedDate, description, isbn13, isbn10) "
@@ -499,7 +520,9 @@ public class AddDocumentDialog extends Stage {
     }
   }
 
-  // cap nhat tai lieu dua vao thong tin nhap va id
+  /**
+   *  cap nhat tai lieu dua vao thong tin nhap va id.
+   */
   public void updateDocumentInDatabase(Document document, int id) {
     String updateQuery = "UPDATE document SET title = ?, author = ?, category = ?, status = ?, " +
         "quantity = ?, publisher = ?, publishedDate = ?, description = ?, " +

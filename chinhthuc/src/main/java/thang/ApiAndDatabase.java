@@ -40,9 +40,9 @@ public class ApiAndDatabase {
     return false; // Nếu không có dữ liệu
   }
 
-  // Hàm để tải dữ liệu từ API và lưu vào cơ sở dữ liệu
-  // cap nhat database document
-
+  /**
+   * Tải thông tin sách về database.
+   */
   public void loadDocumentsFromAPI() {
     new Thread(() -> {
       try {
@@ -163,7 +163,6 @@ public class ApiAndDatabase {
 
   // Hiển thị thông báo lỗi
   private void showAlert(String message) {
-    // Đây là nơi bạn có thể thêm mã để hiển thị cảnh báo lỗi
     System.out.println(message);
   }
 

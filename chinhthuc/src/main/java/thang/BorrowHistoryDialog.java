@@ -28,6 +28,9 @@ public class BorrowHistoryDialog extends Stage {
   private int selectedDocumentId;
   DocumentManagement documentManagementInstance;
 
+  /**
+   * Contructor.
+   */
   public BorrowHistoryDialog(int borrowerId, DocumentManagement documentManagementInstance) {
     this.selectedBorrowerId = borrowerId;
     this.documentManagementInstance = documentManagementInstance;
@@ -36,7 +39,6 @@ public class BorrowHistoryDialog extends Stage {
     historyStage.initModality(Modality.APPLICATION_MODAL);
     historyStage.setTitle("Lịch sử mượn");
 
-    // Initialize table
     historyTable = new TableView<>();
     historyList = FXCollections.observableArrayList();
 
@@ -58,7 +60,6 @@ public class BorrowHistoryDialog extends Stage {
 
     TableColumn<BorrowHistory, String> statusCol = new TableColumn<>("Trạng thái");
     statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
-//    statusCol.setPrefWidth(100);
 
     historyTable.getColumns()
         .addAll(idDocumentCol, titleCol, borrowDateCol, returnDateCol, statusCol);
@@ -138,6 +139,7 @@ public class BorrowHistoryDialog extends Stage {
 
       }
     });
+
     //nut xoa
     deleteButton.setOnAction(e -> {
       BorrowHistory selected = historyTable.getSelectionModel().getSelectedItem();
@@ -198,9 +200,6 @@ public class BorrowHistoryDialog extends Stage {
 
   /**
    * phuong thuc tra sach
-   *
-   * @param borrowHistory lịch sử trả
-   * @param borrowerId    mã người mượn
    */
   private void returnDocument(BorrowHistory borrowHistory, int borrowerId) {
     if (borrowHistory == null) {
@@ -251,10 +250,7 @@ public class BorrowHistoryDialog extends Stage {
   }
 
   /**
-   * Edit selected borrow history
-   */
-  /**
-   * Edit selected borrow history with a new window
+   * Sửa lịch sử mượn.
    */
   private void editHistory(BorrowHistory borrowHistory) {
     Stage editStage = new Stage();
@@ -356,10 +352,7 @@ public class BorrowHistoryDialog extends Stage {
   }
 
   /**
-   * Delete selected borrow history
-   */
-  /**
-   * Delete selected borrow history
+   * Xoa lich su.
    */
   private void deleteHistory(BorrowHistory borrowHistory) {
     // Kiểm tra trạng thái của lịch sử mượn
@@ -400,10 +393,6 @@ public class BorrowHistoryDialog extends Stage {
     });
   }
 
-
-  /**
-   * Show alert dialog
-   */
   private void showAlert(String title, String message, AlertType alertType) {
     Alert alert = new Alert(alertType);
     alert.setTitle(title);
@@ -411,5 +400,4 @@ public class BorrowHistoryDialog extends Stage {
     alert.setContentText(message);
     alert.showAndWait();
   }
-
 }

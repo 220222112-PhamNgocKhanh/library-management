@@ -15,6 +15,9 @@ public class LoginApp extends Application {
   private static final String FIXED_USERNAME = "admin";
   private static final String FIXED_PASSWORD = "admin";
 
+  /**
+   *  Giao dien dang nhap.
+   */
   @Override
   public void start(Stage primaryStage) {
     // Tải ảnh nền

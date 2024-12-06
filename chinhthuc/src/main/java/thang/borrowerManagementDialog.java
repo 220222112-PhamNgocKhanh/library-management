@@ -38,6 +38,9 @@ public class borrowerManagementDialog extends Stage {
   DocumentManagement documentManagementInstance;
   Stage editBorrowerStage;
 
+  /**
+   * Constructor.
+   */
   public borrowerManagementDialog(DocumentManagement documentManagementInstance) {
     this.documentManagementInstance = documentManagementInstance;
     Stage borrowerStage = new Stage();
@@ -54,7 +57,7 @@ public class borrowerManagementDialog extends Stage {
     filterButton.setStyle(
         "-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;");
 
-// Bố cục cho thanh tìm kiếm
+    // Bố cục cho thanh tìm kiếm
     HBox searchBox = new HBox(10, searchField, filterButton);
     searchBox.setAlignment(Pos.CENTER);
     searchBox.setPadding(new Insets(10));
@@ -130,7 +133,7 @@ public class borrowerManagementDialog extends Stage {
 
     row1.getChildren().addAll(addButton, editButton, deleteButton);
 
-// Hàng nút thứ hai
+    // Hàng nút thứ hai
     HBox row2 = new HBox(20);
     row2.setAlignment(Pos.CENTER);
 
@@ -146,7 +149,7 @@ public class borrowerManagementDialog extends Stage {
 
     row2.getChildren().addAll(borrowButton, returnButton);
 
-// Đưa hai hàng nút vào VBox
+    // Đưa hai hàng nút vào VBox
     VBox buttonBox = new VBox(10);
     buttonBox.getChildren().addAll(row1, row2);
     buttonBox.setAlignment(Pos.CENTER);
@@ -459,9 +462,7 @@ public class borrowerManagementDialog extends Stage {
 
 
   /**
-   * them nguoi dung vao database
-   *
-   * @param borrower thong tin ng dung
+   * them nguoi dung vao database.
    */
   private void insertNewBorrower(Borrower borrower) {
     ApiAndDatabase apiAndDatabase = new ApiAndDatabase();
@@ -487,9 +488,7 @@ public class borrowerManagementDialog extends Stage {
   }
 
   /**
-   * chinh sua thong tin nguoi dung
-   *
-   * @param borrower nguoi dung can chinh sua
+   * chinh sua thong tin nguoi dung.
    */
   private void editBorrower(Borrower borrower) {
     Stage editBorrowerStage = new Stage();
@@ -548,9 +547,7 @@ public class borrowerManagementDialog extends Stage {
   }
 
   /**
-   * luu thong tin nguoi dung
-   *
-   * @param idBorrower id
+   * luu thong tin nguoi dung.
    */
   private void saveBorrower(int idBorrower) {
     try (Connection connection = ApiAndDatabase.getConnection()) {
@@ -620,9 +617,7 @@ public class borrowerManagementDialog extends Stage {
   }
 
   /**
-   * xoa nguoi dung
-   *
-   * @param borrower nguoi dung can xoa
+   * xoa nguoi dung.
    */
   private void deleteBorrower(Borrower borrower) {
     String checkQuery = "SELECT COUNT(*) AS bookCount FROM borrow_history WHERE idBorrower = ? AND status IN ('borrowed', 'overdue')";
@@ -657,10 +652,7 @@ public class borrowerManagementDialog extends Stage {
 
 
   /**
-   * chức năng tìm kiếm
-   *
-   * @param searchTerm nội dung
-   * @param table      cập nhật bảng
+   * chức năng tìm kiếm.
    */
   private void filterBorrowers(String searchTerm, TableView<Borrower> table) {
     if (searchTerm == null || searchTerm.trim().isEmpty()) {
@@ -686,6 +678,9 @@ public class borrowerManagementDialog extends Stage {
     }
   }
 
+  /**
+   * Mượn tài liệu.
+   */
   private void borrowDocument(Borrower borrower) {
     Stage borrowStage = new Stage();
     borrowStage.initModality(Modality.APPLICATION_MODAL);
@@ -783,6 +778,9 @@ public class borrowerManagementDialog extends Stage {
     borrowStage.show();
   }
 
+  /**
+   *  Mượn sách thông qua truy vấn database.
+   */
   private void borrowDocumentForBorrower(Borrower borrower, Document document,
       LocalDate returnDate) {
     String checkQuery = "SELECT status FROM borrow_history " +
@@ -873,6 +871,9 @@ public class borrowerManagementDialog extends Stage {
     }
   }
 
+  /**
+   *  Tải thông tin tài liệu.
+   */
   private void loadDocuments(ObservableList<Document> documentList) {
     String query = "SELECT idDocument, title, author FROM document";
     try (Connection connection = new ApiAndDatabase().getConnection();
@@ -892,11 +893,7 @@ public class borrowerManagementDialog extends Stage {
   }
 
   /**
-   * tim kiem tai lieu
-   *
-   * @param documentList  ds tai lieu
-   * @param documentTable bang tai lieu
-   * @param keyword       tu khoa da nhap
+   * tim kiem tai lieu.
    */
   private void filterDocument(ObservableList<Document> documentList,
       TableView<Document> documentTable, String keyword) {
@@ -916,6 +913,9 @@ public class borrowerManagementDialog extends Stage {
     documentTable.setItems(filteredList);
   }
 
+  /**
+   *  Lọc những người quá hạn.
+   */
   private void filterBorrowersWithOverdueBooks() {
     ObservableList<Borrower> allBorrowers = leftTable.getItems();
     ObservableList<Borrower> borrowersWithOverdueBooks = FXCollections.observableArrayList();

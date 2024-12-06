@@ -28,16 +28,15 @@ public class Interface  {
 
   private BorderPane root; // Dùng để thay đổi nội dung chính
   private ObservableList<Document> observableDocumentList;
-  private ArrayList<User> userList;
   private ArrayList<Document> documentList;
   DocumentManagement documentManagementInstance;
 
-
-
+  /**
+   * Giao dien chinh.
+   */
   public void start(Stage primaryStage) {
     // Khởi tạo dữ liệu
     documentList = new ArrayList<>();
-    userList = new ArrayList<>();
     observableDocumentList = FXCollections.observableArrayList(documentList);
 
     primaryStage.setTitle("Thư viện - Dashboard");
@@ -63,9 +62,6 @@ public class Interface  {
     primaryStage.setResizable(false);
   }
 
-  /**
-   * Tạo sidebar với các nút chức năng
-   */
   // Biến để lưu trữ nút hiện tại được chọn
   private Button selectedButton;
 
@@ -206,7 +202,7 @@ public class Interface  {
   }
 
   /**
-   * Chuyển sang giao diện Home (mặc định).
+   * Chuyển sang giao diện Trang chủ (mặc định).
    */
   private void switchToHome() {
     VBox mainContent = createMainContent(); // Tạo lại giao diện chính
@@ -224,7 +220,7 @@ public class Interface  {
       hiddenStage.setOpacity(0); // Đặt cửa sổ vô hình
 
       // Tạo một đối tượng Main
-      DocumentManagement documentManagementInstance = new DocumentManagement(hiddenStage, userList, observableDocumentList);
+      DocumentManagement documentManagementInstance = new DocumentManagement(hiddenStage, observableDocumentList);
 
       // Lấy giao diện chính từ Scene của Main
       Scene mainScene = hiddenStage.getScene();
