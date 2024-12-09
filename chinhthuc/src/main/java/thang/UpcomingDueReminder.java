@@ -6,17 +6,17 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OverdueReminder extends EmailReminder {
+public class UpcomingDueReminder extends EmailReminder {
 
   @Override
   public void sendReminders() {
-    List<Borrower> overdueBorrowers = getOverdueBorrowers();
-    StringBuilder successMessage = new StringBuilder("Danh sách email(quá hạn) đã được gửi:\n");
+    List<Borrower> upcomingDueBorrowers = getUpcomingDueBorrowers();
+    StringBuilder successMessage = new StringBuilder("Danh sách email( sắp đến hạn) đã được gửi:\n");
 
-    for (Borrower borrower : overdueBorrowers) {
+    for (Borrower borrower : upcomingDueBorrowers) {
       if (!sentEmails.contains(borrower.getEmail())) {
-        String emailContent = generateEmailContent(borrower.getName(), true);
-        if (sendEmail(borrower.getEmail(), "Nhắc nhở tài liệu quá hạn", emailContent)) {
+        String emailContent = generateEmailContent(borrower.getName(), false);
+        if (sendEmail(borrower.getEmail(), "Nhắc nhở tài liệu sắp hết hạn", emailContent)) {
           successMessage.append(String.format("%s - %s", borrower.getName(), borrower.getEmail())).append("\n");
           sentEmails.add(borrower.getEmail());
         }
@@ -26,13 +26,13 @@ public class OverdueReminder extends EmailReminder {
     Platform.runLater(() -> showAlertArea("Kết quả", successMessage.toString(), Alert.AlertType.INFORMATION));
   }
 
-  private List<Borrower> getOverdueBorrowers() {
-    List<Borrower> overdueBorrowers = new ArrayList<>();
+  private List<Borrower> getUpcomingDueBorrowers() {
+    List<Borrower> borrowers = new ArrayList<>();
     String query = """
             SELECT DISTINCT b.idBorrower, b.name, b.email
             FROM borrower b
             JOIN borrow_history bh ON b.idBorrower = bh.idBorrower
-            WHERE bh.status = 'overdue'
+            WHERE DATEDIFF(bh.returnDate, CURDATE()) <= 3 AND bh.status = 'borrowed'
             """;
 
     ApiAndDatabase apiAndDatabase = new ApiAndDatabase();
@@ -44,13 +44,13 @@ public class OverdueReminder extends EmailReminder {
         int id = rs.getInt("idBorrower");
         String name = rs.getString("name");
         String email = rs.getString("email");
-        overdueBorrowers.add(new Borrower(id, name, email));
+        borrowers.add(new Borrower(id, name, email));
       }
     } catch (SQLException e) {
       e.printStackTrace();
     }
 
-    return overdueBorrowers;
+    return borrowers;
   }
 
   private void showAlertArea(String title, String message, Alert.AlertType type) {

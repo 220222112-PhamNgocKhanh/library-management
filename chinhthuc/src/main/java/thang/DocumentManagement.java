@@ -224,8 +224,19 @@ public class DocumentManagement {
 
     remindButton.setOnAction(e -> {
       new Thread(() -> {
-        OverdueReminder overdueReminder = new OverdueReminder();
-        overdueReminder.sendReminders();
+        try {
+          // Gửi nhắc nhở quá hạn
+          OverdueReminder overdueReminder = new OverdueReminder();
+          overdueReminder.sendReminders();
+
+          // Gửi nhắc nhở sắp hết hạn
+          UpcomingDueReminder upcomingDueReminder = new UpcomingDueReminder();
+          upcomingDueReminder.sendReminders();
+
+        } catch (Exception ex) {
+          ex.printStackTrace();
+          showAlert("Lỗi gửi email");
+        }
       }).start();
 
     });

@@ -21,8 +21,8 @@ public class BorrowHistoryDialog extends Stage {
   private DatePicker borrowDateField;
   private DatePicker returnDateField;
   private ComboBox<String> statusField;
-  private Button selectDocumentButton;
-  private Label selectedDocumentLabel;
+//  private Button selectDocumentButton;
+//  private Label selectedDocumentLabel;
 
   private int selectedBorrowerId;
   private int selectedDocumentId;

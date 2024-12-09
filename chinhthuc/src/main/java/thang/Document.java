@@ -179,7 +179,7 @@ public class Document {
   public String toString() {
     return String.format(
         "id: %d\nTitle: %s\nAuthor: %s\nCategory: %s\nStatus: %s\nQuantity: %d\nPublisher: %s\nPublished Date: %s\nDescription: %s\nISBN-13: %s\nISBN-10: %s",
-        idDocument, title, author, category, status, quantity, publisher, publishedDate,
-        description, isbn13, isbn10);
+        idDocument,title,author,category,status,quantity,publisher,publishedDate,description,isbn13,isbn10);
   }
+
 }
